@@ -1,0 +1,80 @@
+src/core/classify.ts
+  s_9ca89db16ec5f4::t_5e4f96b8a63c0b 1-6,20-21,24-25,32,89-90,94-99
+src/core/audit.ts
+  s_9ca89db16ec5f4::t_adb38f7bfe73d6 7,95-96,100,103-104
+package.json
+  s_9ca89db16ec5f4::t_8cd7dca0a6dbad 3
+  s_9ca89db16ec5f4::t_3f2399c8374ec2 55
+test/panelSettings.test.ts
+  s_9ca89db16ec5f4::t_6fe692a35a2c1b 4-10
+  s_9ca89db16ec5f4::t_ffc3775c9c4fe0 1-3,11-52
+src/react/index.tsx
+  s_9ca89db16ec5f4::t_af19d935f63d2b 6
+test/auditSymbols.test.ts
+  s_9ca89db16ec5f4::t_6fcb17a530b037 4-5
+  s_9ca89db16ec5f4::t_6505597c846657 1-3,6-23
+tsup.config.ts
+  s_9ca89db16ec5f4::t_acd7d879733f86 13,19
+src/core/auditSymbols.ts
+  s_9ca89db16ec5f4::t_71979e341a7b06 1-32,39,41,47,49,53
+  s_9ca89db16ec5f4::t_d1de54e68347b4 33-38,40,42-46,48,50-52
+src/core/config.ts
+  s_9ca89db16ec5f4::t_448fabb0b1116e 9
+  s_9ca89db16ec5f4::t_d013d0e517362d 47
+src/react/usePageAudit.ts
+  s_9ca89db16ec5f4::t_b609d55ac0d1a9 69
+src/react/ColocationDevTools.tsx
+  s_9ca89db16ec5f4::t_b3f96129b5c366 89
+  s_9ca89db16ec5f4::t_e711c738fbbeb1 544
+  s_9ca89db16ec5f4::t_89b4754146b1bf 3-10,12-17,19-47,99-104,110,112-117,119-121,132-152,154,167-186,206-210,214,216-260,265-266,268-269,272-294,338-369,375,377-387,389-395,440,442,457,459-466,478-483,487-515,529-530,540,547
+src/core/auditMetrics.ts
+  s_9ca89db16ec5f4::t_b5b2763186708b 1-89
+src/core/buildFileTree.ts
+  s_9ca89db16ec5f4::t_f09aff3a4eb655 3-12,72-91
+src/core/importGraph.ts
+  s_9ca89db16ec5f4::t_629c2e3433deed 2,32-76,87-93,138
+src/react/BucketLegend.tsx
+  s_9ca89db16ec5f4::t_5261870c2e86af 1-62
+src/react/ColocationPanelHeader.tsx
+  s_9ca89db16ec5f4::t_b7eb77309f3253 4-6,15-86,95,98-105,118,121-128,133-135,172-201,207,212-216,218-226,228-239,241-242,245-248,252-255,258-271
+src/react/DraggablePanel.tsx
+  s_9ca89db16ec5f4::t_29c11a9af2a3d8 3-13,75-76,79-85,200-207
+src/react/FileTreePanel.tsx
+  s_9ca89db16ec5f4::t_2d2255af45b99c 3,5-8,12,16,46-105,124-126,144,147-149,160,163-165,196,199-201,213-222,228-230,236,238,240-247,255,269,274,277-285,309-311,318,322-326,329,331-336,365-378,381,388,391-412
+src/react/InspectBadge.tsx
+  s_9ca89db16ec5f4::t_467241139d52e0 4
+src/react/LocWidgetButton.tsx
+  s_9ca89db16ec5f4::t_a650242bff604c 3,5-6,8-9,17-21,30-31,33-35,39-40,42,59,61-66
+src/react/PageHoverOverlay.tsx
+  s_9ca89db16ec5f4::t_4a41cecfee469d 1-32
+src/react/SettingsPanel.tsx
+  s_9ca89db16ec5f4::t_0cb97b0a18abfb 1-199
+src/react/highlightPageFile.ts
+  s_9ca89db16ec5f4::t_1265f8e828748b 1-4,8-9,12-19,28-39,44-180,191-196,198-207,209-224,227,230-233,236,238,240-243,248-292,294-305,308-313,319-328,332-333,336
+src/react/panelSettings.ts
+  s_9ca89db16ec5f4::t_a0e4bb08ad8bdb 1-106
+src/react/resolveInspect.ts
+  s_9ca89db16ec5f4::t_73facdaccfc728 17,19-21,167-209
+src/react/scrollAuditFileToTop.ts
+  s_9ca89db16ec5f4::t_40ebb7e49ab13f 1-16
+src/react/useFloatingDrag.ts
+  s_9ca89db16ec5f4::t_1090529afab56d 3,6-12,21-23,26,29-31,33-35,40-46,51-66,86-94,98-109,115-117,123,125,129
+src/react/widgetAnchors.ts
+  s_9ca89db16ec5f4::t_5661fcf4a7055c 1-118
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "c13ab275be49ae27d9497686c833ba3aae368142",
+  "prompts": {},
+  "sessions": {
+    "s_9ca89db16ec5f4": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4710b1e1-2d01-4074-903e-65025b709bb6",
+        "model": "composer-2.5"
+      },
+      "human_author": "Nathan Wang <nathan123wang@gmail.com>"
+    }
+  }
+}
