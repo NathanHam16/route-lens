@@ -2,6 +2,18 @@
 
 This package publishes to the public npm registry. CI uses [Trusted Publishing](https://docs.npmjs.com/trusted-publishers) (OIDC) via `.github/workflows/release.yml` so no long-lived npm token lives in GitHub Secrets.
 
+## First publish (one-time, requires OTP)
+
+The package must exist on npm **before** Trusted Publishing works from CI. Run this once from your machine:
+
+```bash
+npm publish --access public --otp=YOUR_6_DIGIT_CODE
+```
+
+After that, configure Trusted Publishing (below) and use the Release workflow for future versions.
+
+We tried CI publish without a prior manual release — OIDC provenance succeeded but npm returned `404` (scoped package not yet created).
+
 ## Prerequisites
 
 ### 1. Enable 2FA on npm
