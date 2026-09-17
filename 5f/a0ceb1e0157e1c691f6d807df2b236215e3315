@@ -1,0 +1,25 @@
+README.md
+  s_3060057c5cbbc5::t_f78aa270a07dab 1,10,20,37,54-56
+package-lock.json
+  s_3060057c5cbbc5::t_f4fb3c10301516 2,8
+package.json
+  s_3060057c5cbbc5::t_7e9248303b1148 2,9
+src/next/routeHandler.ts
+  s_3060057c5cbbc5::t_ca8ab1ef931d05 37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "5fa0ceb1e0157e1c691f6d807df2b236215e3315",
+  "prompts": {},
+  "sessions": {
+    "s_3060057c5cbbc5": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "s_3060057c5cbbc5",
+        "model": "unknown"
+      },
+      "human_author": "Nathan Wang <nathan123wang@gmail.com>"
+    }
+  }
+}
