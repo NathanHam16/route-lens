@@ -6,7 +6,7 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/edexia-ai/next-colocation-widget"
+    "url": "https://github.com/NathanHam16/next-colocation-widget"
   },
   "keywords": [
     "nextjs",
