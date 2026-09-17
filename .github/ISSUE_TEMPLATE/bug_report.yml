@@ -1,0 +1,75 @@
+name: Bug Report
+description: Report something broken in route-lens
+title: "[Bug]: "
+labels:
+  - bug
+  - triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please fill in the fields below so we can reproduce it.
+
+  - type: input
+    id: route-lens-version
+    attributes:
+      label: route-lens version
+      description: Installed `@nathanham16/route-lens` version (from `package.json` or `npm ls @nathanham16/route-lens`).
+      placeholder: e.g. 0.1.0
+    validations:
+      required: true
+
+  - type: input
+    id: next-version
+    attributes:
+      label: Next.js version
+      description: Your app's `next` dependency version.
+      placeholder: e.g. 16.0.0
+    validations:
+      required: true
+
+  - type: input
+    id: react-version
+    attributes:
+      label: React version
+      description: Optional but helpful for widget/API issues.
+      placeholder: e.g. 19.0.0
+    validations:
+      required: false
+
+  - type: textarea
+    id: repro-steps
+    attributes:
+      label: Steps to reproduce
+      description: Minimal setup from install through the broken behavior.
+      placeholder: |
+        1. Install `@nathanham16/route-lens` and add the API route + widget
+        2. Open a page at `/submissions/[id]`
+        3. Click the loc widget
+        4. See error / wrong tree / missing overlay
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What happened instead. Include console errors or terminal output if relevant.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Screenshots, route path, App Router layout structure, or custom handler config.
+    validations:
+      required: false

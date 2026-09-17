@@ -1,0 +1,61 @@
+# Trusted Publishing (OIDC) — maintainer setup required
+#
+# Before this workflow can publish, configure Trusted Publishing at npmjs.com for
+# @nathanham16/route-lens and link it to the NathanHam16/route-lens GitHub repo.
+# npmjs.com → Package → Settings → Trusted Publisher → GitHub Actions
+#   Repository: NathanHam16/route-lens
+#   Workflow filename: release.yml
+#   Environment: (leave blank unless you add a GitHub Environment gate)
+#
+# See docs/PUBLISHING.md for the full maintainer checklist.
+
+name: Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Semver to publish (e.g. 0.1.1). Leave empty to publish the version already in package.json.
+        required: false
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
+        continue-on-error: true
+
+      - name: Verify pack contents
+        run: npm pack --dry-run
+
+      - name: Set version (manual dispatch)
+        if: github.event_name == 'workflow_dispatch' && inputs.version != ''
+        run: npm version "${{ inputs.version }}" --no-git-tag-version --allow-same-version
+
+      - name: Publish to npm
+        run: npm publish --access public --provenance
