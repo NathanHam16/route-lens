@@ -1,0 +1,65 @@
+.github/ISSUE_TEMPLATE/bug_report.yml
+  s_dcda1bea5879ca::t_de69c1383e1811 1-75
+.github/ISSUE_TEMPLATE/feature_request.yml
+  s_dcda1bea5879ca::t_0db42e9a3406f3 1-58
+.github/pull_request_template.md
+  s_dcda1bea5879ca::t_8b1c7472339118 1-30
+.github/workflows/ci.yml
+  s_dcda1bea5879ca::t_6c42a4c148187f 1-40
+.github/workflows/release.yml
+  s_dcda1bea5879ca::t_f65a13817dad78 1-61
+.gitignore
+  s_dcda1bea5879ca::t_50724201ef0905 5-7
+CHANGELOG.md
+  s_dcda1bea5879ca::t_a443899fe85a01 1-21
+CONTRIBUTING.md
+  s_dcda1bea5879ca::t_ba0cc7b53ba116 1-48
+README.md
+  s_dcda1bea5879ca::t_62bfa1573a7f56 3,7-13,22-24,32,41-45,48-49,62-73,77-78,81,86-202,204,208
+SECURITY.md
+  s_dcda1bea5879ca::t_e5748316cd522d 1-39
+docs/PUBLISHING.md
+  s_dcda1bea5879ca::t_864ab0ba39b6bb 1-97
+docs/SECURITY-AUDIT.md
+  s_dcda1bea5879ca::t_3811b5c68412c7 1-135
+examples/README.md
+  s_dcda1bea5879ca::t_301f423c13a8fb 1-11
+examples/basic-setup.ts
+  s_dcda1bea5879ca::t_566a279852bb27 1-38
+examples/cli-usage.sh
+  s_dcda1bea5879ca::t_f876072ce52eb7 1-23
+examples/custom-classifier.ts
+  s_dcda1bea5879ca::t_434996bb8cdc32 1-60
+package-lock.json
+  s_dcda1bea5879ca::t_09c362db369d18 25-29,2016-2033,2089-2176,2493-2502,2659-2675,2692-2701,2853-2862,3055-3064,3075-3084,3733-3739,4222-4231,4762-4768,4825-4838,4851-4870,4994-5000,5056-5085,5341-5682,5833-5849
+package.json
+  s_dcda1bea5879ca::t_44adc7638c62f7 5-8,11,43,48-52,75-83
+scripts/verify-pack.mjs
+  s_dcda1bea5879ca::t_df2c9dea430256 1-96
+test/buildFileTree.test.ts
+  s_dcda1bea5879ca::t_2d261447875cac 1-102
+test/classify.test.ts
+  s_dcda1bea5879ca::t_b9571724a754e7 1-106
+test/importGraph.test.ts
+  s_dcda1bea5879ca::t_1151fb41dd6a0c 1-121
+test/pathnameToRoute.test.ts
+  s_dcda1bea5879ca::t_56bcfca286d367 1-71
+vitest.config.ts
+  s_dcda1bea5879ca::t_27724706df4849 1-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "0eb84c386724fddbb4e0f4d56628eb111de4fc5b",
+  "prompts": {},
+  "sessions": {
+    "s_dcda1bea5879ca": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "bc5e2af3-c90c-4146-964c-50e3aec88db4",
+        "model": "unknown"
+      },
+      "human_author": "Nathan Wang <nathan123wang@gmail.com>"
+    }
+  }
+}
