@@ -2,9 +2,8 @@
 
 export {
   default as RouteLens,
-  NextColocationWidget,
   ColocationDevTools,
+  NextColocationWidget,
   type RouteLensProps,
-  type NextColocationWidgetProps,
 } from './ColocationDevTools.js';
 export { usePageAudit, type PageAuditResult, type UsePageAuditOptions } from './usePageAudit.js';

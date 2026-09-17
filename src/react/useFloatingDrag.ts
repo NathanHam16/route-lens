@@ -1,13 +1,15 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
-  clampFloatingPoint,
-  loadFloatingPoint,
-  saveFloatingPoint,
-  type FloatingPoint,
-} from './widgetLayer.js';
+  anchorToPoint,
+  loadWidgetAnchor,
+  nearestAnchor,
+  saveWidgetAnchor,
+  type WidgetAnchor,
+} from './widgetAnchors';
+import { clampFloatingPoint, type FloatingPoint } from './widgetLayer';
 
 type DragSession = {
   startX: number;
@@ -16,26 +18,51 @@ type DragSession = {
   moved: boolean;
 };
 
+const SNAP_TRANSITION =
+  'left 0.32s cubic-bezier(0.34, 1.2, 0.64, 1), top 0.32s cubic-bezier(0.34, 1.2, 0.64, 1)';
+
 export function useFloatingDrag(
   storageKey: string,
-  defaultPoint: () => FloatingPoint,
+  defaultAnchor: WidgetAnchor,
   size: { width: number; height: number },
 ) {
+  const [anchor, setAnchor] = useState<WidgetAnchor>(() =>
+    loadWidgetAnchor(storageKey, defaultAnchor, size),
+  );
   const [point, setPoint] = useState<FloatingPoint>(() =>
-    clampFloatingPoint(loadFloatingPoint(storageKey, defaultPoint()), size),
+    typeof window === 'undefined'
+      ? { x: 16, y: 16 }
+      : anchorToPoint(loadWidgetAnchor(storageKey, defaultAnchor, size), size),
   );
   const [dragging, setDragging] = useState(false);
   const dragRef = useRef<DragSession | null>(null);
 
-  const commit = useCallback(
-    (next: FloatingPoint) => {
-      const clamped = clampFloatingPoint(next, size);
-      setPoint(clamped);
-      saveFloatingPoint(storageKey, clamped);
-      return clamped;
+  const snapToAnchor = useCallback(
+    (nextAnchor: WidgetAnchor) => {
+      const target = anchorToPoint(nextAnchor, size);
+      setAnchor(nextAnchor);
+      setPoint(target);
+      saveWidgetAnchor(storageKey, nextAnchor);
+      return target;
     },
     [size, storageKey],
   );
+
+  const snapToNearest = useCallback(
+    (from: FloatingPoint) => {
+      const nextAnchor = nearestAnchor(from, size);
+      return snapToAnchor(nextAnchor);
+    },
+    [size, snapToAnchor],
+  );
+
+  useEffect(() => {
+    const onResize = () => {
+      setPoint(anchorToPoint(anchor, size));
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [anchor, size]);
 
   const onPointerDown = (event: React.PointerEvent<HTMLElement>) => {
     if ((event.target as HTMLElement).closest('label, input, a')) return;
@@ -56,29 +83,49 @@ export function useFloatingDrag(
     const dx = event.clientX - session.startX;
     const dy = event.clientY - session.startY;
     if (Math.abs(dx) + Math.abs(dy) > 3) session.moved = true;
-    commit({
-      x: session.orig.x + dx,
-      y: session.orig.y + dy,
-    });
+    setPoint(
+      clampFloatingPoint(
+        {
+          x: session.orig.x + dx,
+          y: session.orig.y + dy,
+        },
+        size,
+      ),
+    );
   };
 
   const endPointer = (event: React.PointerEvent<HTMLElement>) => {
-    if (!dragRef.current) return;
-    const moved = dragRef.current.moved;
+    const session = dragRef.current;
+    if (!session) return false;
+    const moved = session.moved;
+    const releasePoint = moved
+      ? clampFloatingPoint(
+          {
+            x: session.orig.x + (event.clientX - session.startX),
+            y: session.orig.y + (event.clientY - session.startY),
+          },
+          size,
+        )
+      : point;
     dragRef.current = null;
     setDragging(false);
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    if (moved) {
+      snapToNearest(releasePoint);
     }
     return moved;
   };
 
   return {
     point,
+    anchor,
     dragging,
+    snapTransition: dragging ? 'none' : SNAP_TRANSITION,
     onPointerDown,
     onPointerMove,
     endPointer,
-    setPoint: commit,
+    snapToAnchor,
   };
 }

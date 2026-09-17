@@ -10,13 +10,13 @@ export default defineConfig([
     format: ['esm'],
     dts: true,
     clean: true,
-    external: ['react', 'react-dom', 'next', 'react-dev-inspector'],
+    external: ['react', 'react-dom', 'next', 'react-dev-inspector', 'lucide-react'],
   },
   {
     entry: { 'bin/cli': 'src/bin/cli.ts' },
     format: ['esm'],
     clean: false,
-    external: ['react', 'react-dom', 'next', 'react-dev-inspector'],
+    external: ['react', 'react-dom', 'next', 'react-dev-inspector', 'lucide-react'],
     banner: { js: '#!/usr/bin/env node' },
   },
 ]);

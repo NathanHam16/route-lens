@@ -4,6 +4,7 @@ import path from 'node:path';
 import { createClassifier, routeRootFromEntry, type AuditRow } from './classify.js';
 import { resolveConfig, type ColocationConfig } from './config.js';
 import type { ImportEdge } from './importGraph.js';
+import { extractSymbols } from './auditSymbols.js';
 
 const IMPORT_RE = /from\s+["'](@\/[^"']+|\.\.?\/[^"']+)["']/g;
 const RESOLVE_EXTS = ['', '.tsx', '.ts', '/index.tsx', '/index.ts'];
@@ -91,11 +92,16 @@ export function auditPage(entryArg: string, userConfig: ColocationConfig = {}): 
 
   const rows: AuditRow[] = files.map((rel) => {
     const bucket = classify(rel, routeRoot);
+    const abs = path.join(config.srcAbs, rel);
+    const text = fs.readFileSync(abs, 'utf8');
     return {
       file: rel,
       component: path.basename(rel, '.tsx'),
+      symbols: rel.endsWith('.tsx') ? extractSymbols(abs, text) : [],
       bucket,
       note: smellNote(rel, bucket, routeRoot),
+      lineCount: text.split('\n').length,
+      useClient: rel.endsWith('.tsx') && /^["']use client["'];?/m.test(text),
     };
   });
 

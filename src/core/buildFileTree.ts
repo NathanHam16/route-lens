@@ -1,5 +1,15 @@
 import type { AuditBucket, AuditRow } from './classify.js';
 
+const SMELL_RANK: Record<AuditBucket, number> = {
+  'cross-route': 0,
+  'shared-feature': 1,
+  other: 2,
+  colocated: 3,
+  product: 4,
+  shared: 5,
+  logic: 6,
+};
+
 export interface FileTreeNode {
   /** Segment name (`Sidebar.tsx` or `app`). */
   name: string;
@@ -57,6 +67,26 @@ export function buildFileTree(rows: AuditRow[]): FileTreeNode {
 
   sortNodes(root.children);
   return root;
+}
+
+/** Re-sort file leaves in each folder: cross-route before colocated. */
+export function sortFileTreeBySmells(root: FileTreeNode): void {
+  const walk = (node: FileTreeNode) => {
+    for (const child of node.children) {
+      if (!child.row) walk(child);
+    }
+    node.children.sort((a, b) => {
+      const aDir = a.row === undefined;
+      const bDir = b.row === undefined;
+      if (aDir !== bDir) return aDir ? -1 : 1;
+      if (a.row && b.row) {
+        const rankDiff = SMELL_RANK[a.row.bucket] - SMELL_RANK[b.row.bucket];
+        if (rankDiff !== 0) return rankDiff;
+      }
+      return a.name.localeCompare(b.name);
+    });
+  };
+  walk(root);
 }
 
 /** Worst bucket under a folder (for folder tint). */

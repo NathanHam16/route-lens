@@ -66,7 +66,7 @@ export function usePageAudit(
           const message =
             typeof body === 'object' && body !== null && 'error' in body
               ? String(body.error)
-              : `Colocation audit failed (${res.status})`;
+              : `Route lens audit failed (${res.status})`;
           setError(message);
           setData(null);
           return;

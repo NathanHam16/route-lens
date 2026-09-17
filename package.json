@@ -1,6 +1,6 @@
 {
   "name": "@nathanham16/route-lens",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Dev-only overlay: page-scoped import tree with colocation smells (green / red / orange) for Next.js App Router.",
   "homepage": "https://github.com/NathanHam16/route-lens#readme",
   "bugs": {
@@ -52,6 +52,7 @@
     "verify-pack": "node scripts/verify-pack.mjs"
   },
   "peerDependencies": {
+    "lucide-react": ">=0.400.0",
     "next": ">=14",
     "react": ">=18",
     "react-dom": ">=18"

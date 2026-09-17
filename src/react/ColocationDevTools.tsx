@@ -1,19 +1,50 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from 'react';
 import { usePathname } from 'next/navigation';
-import { ColocationPanelHeader } from './ColocationPanelHeader.js';
-import { ColocationWidgetPortal } from './ColocationWidgetPortal.js';
-import { DraggablePanel } from './DraggablePanel.js';
-import { LocWidgetButton } from './LocWidgetButton.js';
-import { countDownstreamSmells, countSmells, FileTreePanel } from './FileTreePanel.js';
-import { InspectBadge } from './InspectBadge.js';
+import { ColocationPanelHeader } from './ColocationPanelHeader';
+import { ColocationWidgetPortal } from './ColocationWidgetPortal';
+import { DraggablePanel } from './DraggablePanel';
+import { LocWidgetButton } from './LocWidgetButton';
+import { countDownstreamSmells, countSmells, FileTreePanel } from './FileTreePanel';
+import { InspectBadge } from './InspectBadge';
 import type { AuditBucket, AuditRow } from '../core/classify.js';
-import { buildImportIndex, importSubtree } from '../core/importGraph.js';
-import { loadPanelZoom, savePanelZoom, stepPanelZoom } from './panelPrefs.js';
-import { clearPageFileHighlights, revealPageFileOnScreen } from './highlightPageFile.js';
-import { resolveInspectTarget } from './resolveInspect.js';
-import { usePageAudit, type PageAuditResult } from './usePageAudit.js';
+import {
+  buildImportIndex,
+  graphChildren,
+  graphParents,
+  importSubtree,
+  pickGraphNeighbor,
+} from '../core/importGraph.js';
+import { buildGraphDepthIndex } from '../core/auditMetrics.js';
+import { loadPanelZoom, savePanelZoom, stepPanelZoom } from './panelPrefs';
+import {
+  applySettingsPreset,
+  loadPanelSettings,
+  savePanelSettings,
+  type PanelSettings,
+  type SettingsPreset,
+} from './panelSettings';
+import { detectActivePreset, SettingsPanel } from './SettingsPanel';
+import {
+  clearPageFileHighlights,
+  clearPageFileMountCache,
+  mountedAuditFiles,
+  mountRectsForFile,
+  revealPageFileOnScreen,
+  warmPageFileMountCache,
+} from './highlightPageFile';
+import type { PageMountRect } from './highlightPageFile';
+import { PageHoverOverlay } from './PageHoverOverlay';
+import { resolveInspectTarget } from './resolveInspect';
+import { usePageAudit, type PageAuditResult } from './usePageAudit';
 
 type HoverState = {
   visible: boolean;
@@ -55,10 +86,7 @@ export type RouteLensProps = {
   apiPath?: string;
 };
 
-/** @deprecated Use `RouteLensProps` */
-export type NextColocationWidgetProps = RouteLensProps;
-
-function RouteLensPanel({ apiPath }: RouteLensProps) {
+function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
   const pathname = usePathname();
   const { loading, error, data } = usePageAudit(pathname, { apiPath });
   const rows = useMemo(() => flattenRows(data), [data]);
@@ -68,15 +96,29 @@ function RouteLensPanel({ apiPath }: RouteLensProps) {
   const [inspectMode, setInspectMode] = useState(false);
   const [selectedFile, setSelectedFile] = useState<string | undefined>();
   const [focusFile, setFocusFile] = useState<string | undefined>();
-  const [hideShared, setHideShared] = useState(true);
+  const [settings, setSettings] = useState<PanelSettings>(() => loadPanelSettings());
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [activePreset, setActivePreset] = useState<SettingsPreset | null>(() =>
+    detectActivePreset(loadPanelSettings()),
+  );
+  const [mountedFiles, setMountedFiles] = useState<Set<string>>(() => new Set());
   const [fontPx, setFontPx] = useState(() => loadPanelZoom());
   const [hover, setHover] = useState<HoverState>(INITIAL_HOVER);
   const [hoveredTreeFile, setHoveredTreeFile] = useState<string | null>(null);
   const [highlightedEl, setHighlightedEl] = useState<HTMLElement | null>(null);
   const [pageMatchCount, setPageMatchCount] = useState<number | null>(null);
+  const [pageMatchViaShell, setPageMatchViaShell] = useState(false);
   const pageHighlightsRef = useRef<HTMLElement[]>([]);
+  const panelFocusRef = useRef<HTMLDivElement>(null);
+  const [hoverRects, setHoverRects] = useState<PageMountRect[]>([]);
 
-  const { importsOf } = useMemo(() => buildImportIndex(edges), [edges]);
+  const focusPanel = useCallback(() => {
+    panelFocusRef.current?.focus({ preventScroll: true });
+  }, []);
+
+  const { importsOf, importedBy } = useMemo(() => buildImportIndex(edges), [edges]);
+  const [parentStep, setParentStep] = useState(0);
+  const [childStep, setChildStep] = useState(0);
 
   const clearPageHighlights = useCallback(() => {
     clearPageFileHighlights(pageHighlightsRef.current);
@@ -87,11 +129,29 @@ function RouteLensPanel({ apiPath }: RouteLensProps) {
   const highlightFileOnPage = useCallback(
     (file: string) => {
       clearPageHighlights();
-      const { elements } = revealPageFileOnScreen(file, rows, data?.routeRoot, edges);
-      pageHighlightsRef.current = elements;
-      setPageMatchCount(elements.length);
+      setPageMatchCount(null);
+      setPageMatchViaShell(false);
+
+      const run = () => {
+        const { elements, viaEntryShell } = revealPageFileOnScreen(
+          file,
+          rows,
+          data?.routeRoot,
+          edges,
+          data?.entry,
+        );
+        pageHighlightsRef.current = elements;
+        setPageMatchCount(elements.length);
+        setPageMatchViaShell(viaEntryShell);
+      };
+
+      if (typeof requestAnimationFrame === 'function') {
+        requestAnimationFrame(run);
+      } else {
+        run();
+      }
     },
-    [clearPageHighlights, data?.routeRoot, edges, rows],
+    [clearPageHighlights, data?.entry, data?.routeRoot, edges, rows],
   );
 
   const focusFiles = useMemo(() => {
@@ -104,7 +164,26 @@ function RouteLensPanel({ apiPath }: RouteLensProps) {
     return rows.filter((row) => focusFiles.has(row.file));
   }, [focusFiles, rows]);
 
-  const treeHideShared = hideShared && !focusFile;
+  const graphDepths = useMemo(
+    () => buildGraphDepthIndex(data?.entry, edges),
+    [data?.entry, edges],
+  );
+
+  const updateSettings = useCallback((patch: Partial<PanelSettings>) => {
+    setSettings((prev) => {
+      const next = { ...prev, ...patch };
+      savePanelSettings(next);
+      setActivePreset(detectActivePreset(next));
+      return next;
+    });
+  }, []);
+
+  const applyPreset = useCallback((preset: SettingsPreset) => {
+    const next = applySettingsPreset(preset);
+    setSettings(next);
+    savePanelSettings(next);
+    setActivePreset(preset);
+  }, []);
   const focusRootRow = useMemo(
     () => (focusFile ? displayRows.find((row) => row.file === focusFile) : undefined),
     [displayRows, focusFile],
@@ -124,18 +203,94 @@ function RouteLensPanel({ apiPath }: RouteLensProps) {
   };
 
   const handleSelectFile = useCallback(
-    (file: string) => {
+    (file: string, resetGraphSteps = true) => {
+      if (resetGraphSteps) {
+        setParentStep(0);
+        setChildStep(0);
+      }
       setSelectedFile(file);
       setFocusFile(file);
       highlightFileOnPage(file);
+      focusPanel();
     },
-    [highlightFileOnPage],
+    [focusPanel, highlightFileOnPage],
+  );
+
+  const navFile = focusFile ?? hoveredTreeFile ?? null;
+
+  const navParent = useMemo(() => {
+    if (!navFile) return null;
+    return pickGraphNeighbor(graphParents(navFile, importedBy), parentStep);
+  }, [importedBy, navFile, parentStep]);
+
+  const navChild = useMemo(() => {
+    if (!navFile) return null;
+    return pickGraphNeighbor(graphChildren(navFile, importsOf), childStep);
+  }, [childStep, importsOf, navFile]);
+
+  const goUp = useCallback(() => {
+    if (!navFile) return;
+    const step = pickGraphNeighbor(graphParents(navFile, importedBy), parentStep);
+    if (step.file) handleSelectFile(step.file, false);
+  }, [handleSelectFile, importedBy, navFile, parentStep]);
+
+  const goDown = useCallback(() => {
+    if (!navFile) return;
+    const step = pickGraphNeighbor(graphChildren(navFile, importsOf), childStep);
+    if (step.file) handleSelectFile(step.file, false);
+  }, [childStep, handleSelectFile, importsOf, navFile]);
+
+  const cycleParent = useCallback(
+    (delta: -1 | 1) => {
+      if (!navFile) return;
+      const total = graphParents(navFile, importedBy).length;
+      if (total <= 1) return;
+      setParentStep((current) => (current + delta + total) % total);
+    },
+    [importedBy, navFile],
+  );
+
+  const cycleChild = useCallback(
+    (delta: -1 | 1) => {
+      if (!navFile) return;
+      const total = graphChildren(navFile, importsOf).length;
+      if (total <= 1) return;
+      setChildStep((current) => (current + delta + total) % total);
+    },
+    [importsOf, navFile],
   );
 
   const handleClearFocus = useCallback(() => {
     setFocusFile(undefined);
+    setParentStep(0);
+    setChildStep(0);
     clearPageHighlights();
+    setPageMatchCount(null);
+    setPageMatchViaShell(false);
   }, [clearPageHighlights]);
+
+  useEffect(() => {
+    if (!rows.length || !edges.length) return;
+    warmPageFileMountCache(rows, edges, data?.entry);
+    const frame = requestAnimationFrame(() => {
+      warmPageFileMountCache(rows, edges, data?.entry);
+      setMountedFiles(mountedAuditFiles(data?.entry));
+    });
+    setMountedFiles(mountedAuditFiles(data?.entry));
+    return () => cancelAnimationFrame(frame);
+  }, [data?.entry, edges, rows]);
+
+  useEffect(() => {
+    if (hoveredTreeFile && hoveredTreeFile !== focusFile) {
+      setHoverRects(mountRectsForFile(hoveredTreeFile, data?.entry));
+      return;
+    }
+    if (focusFile && navChild?.file && navChild.file !== focusFile) {
+      setHoverRects(mountRectsForFile(navChild.file, data?.entry));
+      return;
+    }
+    setHoverRects([]);
+  }, [data?.entry, focusFile, hoveredTreeFile, navChild]);
 
   const updateHoverFromElement = useCallback(
     (element: HTMLElement | null, x: number, y: number) => {
@@ -180,16 +335,64 @@ function RouteLensPanel({ apiPath }: RouteLensProps) {
     };
   }, [highlightedEl, hover.bucket, inspectMode]);
 
+  const runGraphKey = useCallback(
+    (event: { key: string; shiftKey: boolean; preventDefault: () => void; stopPropagation: () => void }) => {
+      if (!focusFile) return;
+
+      const key = event.key;
+      if (key !== 'ArrowUp' && key !== 'ArrowDown' && key !== 'ArrowLeft' && key !== 'ArrowRight') {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (key === 'ArrowUp') goUp();
+      else if (key === 'ArrowDown') goDown();
+      else if (key === 'ArrowLeft') {
+        if (event.shiftKey) cycleParent(-1);
+        else cycleChild(-1);
+      } else if (key === 'ArrowRight') {
+        if (event.shiftKey) cycleParent(1);
+        else cycleChild(1);
+      }
+    },
+    [cycleChild, cycleParent, focusFile, goDown, goUp],
+  );
+
+  const handleGraphKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLDivElement>) => {
+      runGraphKey(event);
+    },
+    [runGraphKey],
+  );
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.altKey && event.shiftKey && event.key.toLowerCase() === 'c') {
         event.preventDefault();
         setOpen((prev) => !prev);
+        return;
       }
+      if (!open || !focusFile) return;
+      if (!(event.target instanceof HTMLElement)) return;
+      if (!event.target.closest('[data-route-lens]')) return;
+      if (event.target instanceof HTMLTextAreaElement) return;
+      if (
+        event.target instanceof HTMLInputElement &&
+        !['checkbox', 'radio', 'button'].includes(event.target.type)
+      ) {
+        return;
+      }
+      runGraphKey(event);
     };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, []);
+    document.addEventListener('keydown', onKeyDown, true);
+    return () => document.removeEventListener('keydown', onKeyDown, true);
+  }, [focusFile, open, runGraphKey]);
+
+  useEffect(() => {
+    if (open) focusPanel();
+  }, [focusPanel, open]);
 
   useEffect(() => {
     if (!inspectMode) {
@@ -234,7 +437,9 @@ function RouteLensPanel({ apiPath }: RouteLensProps) {
   useEffect(() => {
     setFocusFile(undefined);
     setSelectedFile(undefined);
+    setHoverRects([]);
     clearPageHighlights();
+    clearPageFileMountCache();
   }, [clearPageHighlights, pathname]);
 
   useEffect(() => () => clearPageHighlights(), [clearPageHighlights]);
@@ -244,18 +449,21 @@ function RouteLensPanel({ apiPath }: RouteLensProps) {
       routeLabel={routeLabel}
       focusFile={focusFile}
       focusRootBucket={focusRootRow?.bucket}
-      hoveredFile={hoveredTreeFile}
       entryFile={data?.entry}
-      edges={edges}
       counts={counts}
       countsAreDownstream={Boolean(focusFile)}
-      inspectMode={inspectMode}
-      hideShared={hideShared}
       fontPx={fontPx}
-      onInspectChange={setInspectMode}
-      onHideSharedChange={setHideShared}
       pageMatchCount={pageMatchCount}
+      pageMatchViaShell={pageMatchViaShell}
       onClearFocus={handleClearFocus}
+      onNavigateUp={navFile ? goUp : undefined}
+      onNavigateDown={navFile ? goDown : undefined}
+      onCycleParentPrev={navFile ? () => cycleParent(-1) : undefined}
+      onCycleParentNext={navFile ? () => cycleParent(1) : undefined}
+      onCycleChildPrev={navFile ? () => cycleChild(-1) : undefined}
+      onCycleChildNext={navFile ? () => cycleChild(1) : undefined}
+      navParent={navParent}
+      navChild={navChild}
       onZoomDelta={bumpZoom}
       onClose={() => setOpen(false)}
       ready={!loading && !error}
@@ -267,21 +475,44 @@ function RouteLensPanel({ apiPath }: RouteLensProps) {
       <LocWidgetButton open={open} onToggle={() => setOpen((prev) => !prev)} />
 
       {open ? (
-        <DraggablePanel header={header} fontSizePx={fontPx}>
+        <DraggablePanel
+          header={header}
+          fontSizePx={fontPx}
+          panelRef={panelFocusRef}
+          onPanelKeyDown={handleGraphKeyDown}
+        >
           {loading ? <p className="p-1 text-zinc-500">loading…</p> : null}
           {error ? <p className="p-1 text-red-400">{error}</p> : null}
           {!loading && !error ? (
-            <FileTreePanel
-              rows={displayRows}
-              edges={edges}
-              entryFile={data?.entry}
-              selectedFile={selectedFile}
-              onSelectFile={handleSelectFile}
-              onClearFocus={handleClearFocus}
-              onHoverFile={setHoveredTreeFile}
-              focusFile={focusFile}
-              hideShared={treeHideShared}
-            />
+            <>
+              <FileTreePanel
+                rows={displayRows}
+                edges={edges}
+                entryFile={data?.entry}
+                settings={
+                  focusFile
+                    ? { ...settings, hideShared: false, smellsOnly: false }
+                    : settings
+                }
+                graphDepths={graphDepths}
+                mountedFiles={mountedFiles}
+                onSelectFile={handleSelectFile}
+                onClearFocus={handleClearFocus}
+                onHoverFile={setHoveredTreeFile}
+                focusFile={focusFile}
+              />
+              <SettingsPanel
+                open={settingsOpen}
+                onToggleOpen={() => setSettingsOpen((prev) => !prev)}
+                settings={settings}
+                activePreset={activePreset}
+                onPreset={applyPreset}
+                onChange={updateSettings}
+                inspectMode={inspectMode}
+                onInspectChange={setInspectMode}
+                filterLocked={Boolean(focusFile)}
+              />
+            </>
           ) : null}
         </DraggablePanel>
       ) : null}
@@ -295,6 +526,8 @@ function RouteLensPanel({ apiPath }: RouteLensProps) {
         bucket={hover.bucket}
         fontSizePx={fontPx}
       />
+
+      <PageHoverOverlay rects={hoverRects} />
     </ColocationWidgetPortal>
   );
 }
@@ -304,11 +537,11 @@ export default function RouteLens(props: RouteLensProps) {
     return null;
   }
 
-  return <RouteLensPanel {...props} />;
+  return <ColocationDevToolsPanel {...props} />;
 }
 
 /** @deprecated Use `RouteLens` */
-export const NextColocationWidget = RouteLens;
+export const ColocationDevTools = RouteLens;
 
 /** @deprecated Use `RouteLens` */
-export const ColocationDevTools = RouteLens;
+export const NextColocationWidget = RouteLens;

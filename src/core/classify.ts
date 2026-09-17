@@ -1,4 +1,9 @@
-import { resolveConfig, type ResolvedColocationConfig } from './config.js';
+/**
+ * Bucket classification for Next.js route page audits.
+ * Pure path/string logic — no filesystem or app imports.
+ */
+
+import { resolveConfig, type ColocationConfig, type ResolvedColocationConfig } from './config.js';
 
 export type AuditBucket =
   | 'colocated'
@@ -12,14 +17,19 @@ export type AuditBucket =
 export interface AuditRow {
   file: string;
   component: string;
+  /** React export / display names from static scan (default export fn name, etc.). */
+  symbols?: string[];
   bucket: AuditBucket;
   note: string;
+  lineCount?: number;
+  useClient?: boolean;
 }
 
 function normalizeRel(rel: string): string {
   return rel.replaceAll('\\', '/');
 }
 
+/** Derive route root from a src-relative page entry (e.g. app/foo/page.tsx → app/foo). */
 export function routeRootFromEntry(entryRel: string): string {
   const rel = normalizeRel(entryRel);
   const idx = rel.lastIndexOf('/page.tsx');
@@ -76,10 +86,14 @@ export function createClassifier(config: ResolvedColocationConfig) {
   return { classify, smellNote };
 }
 
-/** Default Next App Router colocation rules (no productSibling). */
-const defaultRules = createClassifier(
-  resolveConfig({ rootDir: typeof process !== 'undefined' ? process.cwd() : '.' }),
-);
+/** Default Next App Router colocation rules. */
+const defaultRules = createClassifier(resolveConfig());
 
 export const classify = defaultRules.classify;
 export const smellNote = defaultRules.smellNote;
+
+/** @deprecated Use `createClassifier(resolveConfig(userConfig))` */
+export function classifyWithConfig(rel: string, routeRoot: string, userConfig: ColocationConfig = {}) {
+  const rules = createClassifier(resolveConfig(userConfig));
+  return rules.classify(rel, routeRoot);
+}

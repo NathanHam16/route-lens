@@ -6,6 +6,7 @@ export const DEFAULT_OK_PREFIXES = [
   'app/providers.tsx',
   'components/ui/',
   'components/shared/',
+  'components/copilot/',
   'lib/',
 ] as const;
 
@@ -43,7 +44,7 @@ export function resolveConfig(config: ColocationConfig = {}): ResolvedColocation
     srcAbs: `${rootDir}/${srcDir}`.replace(/\/+/g, '/'),
     alias: config.alias ?? '@/',
     okPrefixes: config.okPrefixes ?? DEFAULT_OK_PREFIXES,
-    productSibling: config.productSibling ?? false,
+    productSibling: config.productSibling ?? true,
   };
 }
 
