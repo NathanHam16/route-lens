@@ -1,0 +1,87 @@
+package-lock.json
+  s_9ca89db16ec5f4::t_593ecab5b69cca 1-5269
+src/core/buildFileTree.ts
+  s_846c28aaeb1e6c::t_4520e1f6c46d79 1-91
+src/core/classify.ts
+  s_846c28aaeb1e6c::t_38fd2bfa5754a1 1-85
+src/core/importGraph.ts
+  s_846c28aaeb1e6c::t_a28b97dc7268bf 1-106
+src/react/ColocationDevTools.tsx
+  s_9ca89db16ec5f4::t_b42afe1edaebb5 1-308
+src/react/ColocationPanelHeader.tsx
+  s_9ca89db16ec5f4::t_5c7c767a6e8fec 1-206
+src/react/ColocationWidgetPortal.tsx
+  s_9ca89db16ec5f4::t_645925fbac1825 1-15
+src/react/DraggablePanel.tsx
+  s_9ca89db16ec5f4::t_dbe12d23a3337a 1-202
+src/react/FileTreePanel.tsx
+  s_9ca89db16ec5f4::t_4013ef00c23388 1-304
+src/react/InspectBadge.tsx
+  s_9ca89db16ec5f4::t_91df772db96c9b 1-56
+src/react/LocWidgetButton.tsx
+  s_9ca89db16ec5f4::t_bada4c56a1bdaa 1-67
+src/react/highlightPageFile.ts
+  s_9ca89db16ec5f4::t_e87356f86e0c83 1-82
+src/react/index.tsx
+  s_9ca89db16ec5f4::t_26befbeaed13db 1-8
+src/react/panelPrefs.ts
+  s_9ca89db16ec5f4::t_cfafb65382e2eb 1-33
+src/react/resolveInspect.ts
+  s_9ca89db16ec5f4::t_4d9a95909ec5d8 1-230
+src/react/useFloatingDrag.ts
+  s_9ca89db16ec5f4::t_a7ca351f0688e6 1-84
+src/react/usePageAudit.ts
+  s_9ca89db16ec5f4::t_a3489909385af5 1-97
+src/react/widgetLayer.ts
+  s_9ca89db16ec5f4::t_8332cd00f3bdad 1-44
+.gitignore
+  s_9ca89db16ec5f4::t_9416bf17983ef7 1-4
+LICENSE
+  s_9ca89db16ec5f4::t_dc8f5d5b876502 1-21
+README.md
+  s_9ca89db16ec5f4::t_a1ee0b983cad99 1-76
+package.json
+  s_9ca89db16ec5f4::t_c968bfa9b358bf 1-69
+src/bin/cli.ts
+  s_9ca89db16ec5f4::t_f04d1329ebabc2 1-55
+src/core/audit.ts
+  s_9ca89db16ec5f4::t_c6b0fa8bc4f086 1-122
+src/core/config.ts
+  s_9ca89db16ec5f4::t_b2741d3e3ac6c6 1-53
+src/index.ts
+  s_9ca89db16ec5f4::t_91069c58aaf915 1-25
+src/next/index.ts
+  s_9ca89db16ec5f4::t_bbc9fa91e0ce98 1-2
+src/next/pathnameToRoute.ts
+  s_9ca89db16ec5f4::t_3efdedb77dfe40 1-55
+src/next/routeHandler.ts
+  s_9ca89db16ec5f4::t_d1b4a0205fd543 1-82
+tsconfig.json
+  s_9ca89db16ec5f4::t_a31fd40a938399 1-17
+tsup.config.ts
+  s_9ca89db16ec5f4::t_2021acb7dbca5d 1-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "893e43de259bb6843aeaf73cde568473795e921b",
+  "prompts": {},
+  "sessions": {
+    "s_846c28aaeb1e6c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "9f3dbfea-f6ed-442e-ad0a-551a56bb190c",
+        "model": "composer-2.5"
+      },
+      "human_author": "Nathan Wang <nathan123wang@gmail.com>"
+    },
+    "s_9ca89db16ec5f4": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4710b1e1-2d01-4074-903e-65025b709bb6",
+        "model": "composer-2.5"
+      },
+      "human_author": "Nathan Wang <nathan123wang@gmail.com>"
+    }
+  }
+}
