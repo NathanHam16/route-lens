@@ -1,0 +1,43 @@
+README.md
+  s_6834d971841740::t_98e8f7d853da99 1,10,17,20,22,25,28,37,42,49,54-56,61-66
+package-lock.json
+  s_6834d971841740::t_6f02e9ea182eea 2,8,15
+package.json
+  s_6834d971841740::t_8bf0aba2653261 2,4,9,17-18,21
+src/bin/cli.ts
+  s_6834d971841740::t_6231ca08cf2fa4 5,8-9
+src/next/index.ts
+  s_6834d971841740::t_3f7c0872c1776c 1-5
+src/next/routeHandler.ts
+  s_6834d971841740::t_58db65222875ee 34,37-38,41,83-85
+src/react/ColocationDevTools.tsx
+  s_6834d971841740::t_5ff6df94c53a41 54,58-61,142,208,302,307,310-314
+src/react/DraggablePanel.tsx
+  s_6834d971841740::t_a3ec0aa88e07cf 14,158
+src/react/LocWidgetButton.tsx
+  s_6834d971841740::t_00c5ef439cb0bf 6,33
+src/react/highlightPageFile.ts
+  s_6834d971841740::t_ac1fdbaf5ab7d5 19
+src/react/index.tsx
+  s_6834d971841740::t_cd811468171258 4-5,7
+src/react/panelPrefs.ts
+  s_6834d971841740::t_daf2a5d48a7c90 1
+src/react/usePageAudit.ts
+  s_6834d971841740::t_9fb35c5056a1f4 35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "7730bc0825d6f79729f4f1ecea52af8f23ca6cc4",
+  "prompts": {},
+  "sessions": {
+    "s_6834d971841740": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "99d62d10-2d19-403c-9d59-ac0f6da16845",
+        "model": "unknown"
+      },
+      "human_author": "Nathan Wang <nathan123wang@gmail.com>"
+    }
+  }
+}
