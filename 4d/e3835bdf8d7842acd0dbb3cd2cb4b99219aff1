@@ -1,0 +1,19 @@
+docs/PUBLISHING.md
+  s_3fc1d7e9b5bb72::t_7fa47258edc55f 5-16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "4de3835bdf8d7842acd0dbb3cd2cb4b99219aff1",
+  "prompts": {},
+  "sessions": {
+    "s_3fc1d7e9b5bb72": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "bcc94e63-2c3b-49fc-8ee1-9b2cb5ef9c46",
+        "model": "unknown"
+      },
+      "human_author": "Nathan Wang <nathan123wang@gmail.com>"
+    }
+  }
+}
