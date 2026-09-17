@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import { auditPage } from '../core/audit.js';
 
 function usage(): never {
