@@ -1,4 +1,4 @@
-# route-lens
+# @nathanham16/route-lens
 
 Dev-only overlay for **Next.js App Router**: see what the **current page** imports, colored by colocation (green / red / orange). Draggable, resizable, focus subtree, inspect mode.
 
@@ -7,7 +7,7 @@ Not affiliated with Vercel or the Next.js project.
 ## Install
 
 ```bash
-npm install -D route-lens
+npm install -D @nathanham16/route-lens
 ```
 
 Peers: `react`, `react-dom`, `next` (14+).
@@ -17,7 +17,7 @@ Peers: `react`, `react-dom`, `next` (14+).
 **1. API route** — `app/api/dev/route-lens/route.ts`:
 
 ```ts
-import { createRouteLensHandler } from 'route-lens/next';
+import { createRouteLensHandler } from '@nathanham16/route-lens/next';
 
 export const GET = createRouteLensHandler();
 ```
@@ -34,7 +34,7 @@ export const GET = createRouteLensHandler({
 **2. Widget** — in your root client providers:
 
 ```tsx
-import { RouteLens } from 'route-lens/react';
+import { RouteLens } from '@nathanham16/route-lens/react';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -51,9 +51,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
 ## CLI
 
 ```bash
-npx route-lens submissions/[id]
-npx route-lens submissions/[id] --json
-npx route-lens submissions/[id] --suspects-only
+npx @nathanham16/route-lens submissions/[id]
+npx @nathanham16/route-lens submissions/[id] --json
+npx @nathanham16/route-lens submissions/[id] --suspects-only
 ```
 
 ## Default rules (Next App Router)

@@ -1,12 +1,12 @@
 {
-  "name": "route-lens",
+  "name": "@nathanham16/route-lens",
   "version": "0.1.0",
   "description": "Dev-only overlay: page-scoped import tree with colocation smells (green / red / orange) for Next.js App Router.",
   "license": "MIT",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/NathanHam16/route-lens"
+    "url": "git+https://github.com/NathanHam16/route-lens.git"
   },
   "keywords": [
     "nextjs",

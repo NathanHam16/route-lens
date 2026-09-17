@@ -34,7 +34,7 @@ export type CreateColocationRouteOptions = ColocationConfig;
  * Drop into `app/api/dev/route-lens/route.ts`:
  *
  * ```ts
- * import { createRouteLensHandler } from 'route-lens/next';
+ * import { createRouteLensHandler } from '@nathanham16/route-lens/next';
  * export const GET = createRouteLensHandler();
  * ```
  */
