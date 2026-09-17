@@ -3,7 +3,7 @@
 import { COLOCATION_WIDGET_Z } from './widgetLayer.js';
 import { useFloatingDrag } from './useFloatingDrag.js';
 
-const PILL_STORAGE = 'next-colocation-widget-pill-position';
+const PILL_STORAGE = 'route-lens-pill-position';
 const PILL_W = 44;
 const PILL_H = 28;
 
@@ -30,7 +30,7 @@ export function LocWidgetButton({ open, onToggle }: LocWidgetButtonProps) {
     <div
       role="button"
       tabIndex={0}
-      data-colocation-devtools
+      data-route-lens
       data-colocation-drag-handle
       aria-pressed={open}
       aria-label="Colocation audit. Drag to move, click to toggle."

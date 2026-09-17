@@ -51,11 +51,14 @@ const BUCKET_OUTLINE: Record<AuditBucket, string> = {
   logic: 'outline-zinc-500/40',
 };
 
-export type NextColocationWidgetProps = {
+export type RouteLensProps = {
   apiPath?: string;
 };
 
-function ColocationDevToolsPanel({ apiPath }: NextColocationWidgetProps) {
+/** @deprecated Use `RouteLensProps` */
+export type NextColocationWidgetProps = RouteLensProps;
+
+function RouteLensPanel({ apiPath }: RouteLensProps) {
   const pathname = usePathname();
   const { loading, error, data } = usePageAudit(pathname, { apiPath });
   const rows = useMemo(() => flattenRows(data), [data]);
@@ -136,7 +139,7 @@ function ColocationDevToolsPanel({ apiPath }: NextColocationWidgetProps) {
 
   const updateHoverFromElement = useCallback(
     (element: HTMLElement | null, x: number, y: number) => {
-      if (!element || element.closest('[data-colocation-devtools]')) {
+      if (!element || element.closest('[data-route-lens]')) {
         setHover((prev) => (prev.visible ? INITIAL_HOVER : prev));
         setHighlightedEl(null);
         return;
@@ -202,7 +205,7 @@ function ColocationDevToolsPanel({ apiPath }: NextColocationWidgetProps) {
 
     const onClick = (event: MouseEvent) => {
       const element = document.elementFromPoint(event.clientX, event.clientY);
-      if (!(element instanceof HTMLElement) || element.closest('[data-colocation-devtools]')) return;
+      if (!(element instanceof HTMLElement) || element.closest('[data-route-lens]')) return;
       event.preventDefault();
       event.stopPropagation();
       const target = resolveInspectTarget(element, rows, data?.routeRoot, edges);
@@ -296,13 +299,16 @@ function ColocationDevToolsPanel({ apiPath }: NextColocationWidgetProps) {
   );
 }
 
-export default function NextColocationWidget(props: NextColocationWidgetProps) {
+export default function RouteLens(props: RouteLensProps) {
   if (process.env.NODE_ENV !== 'development') {
     return null;
   }
 
-  return <ColocationDevToolsPanel {...props} />;
+  return <RouteLensPanel {...props} />;
 }
 
-/** @deprecated Use `NextColocationWidget` */
-export const ColocationDevTools = NextColocationWidget;
+/** @deprecated Use `RouteLens` */
+export const NextColocationWidget = RouteLens;
+
+/** @deprecated Use `RouteLens` */
+export const ColocationDevTools = RouteLens;

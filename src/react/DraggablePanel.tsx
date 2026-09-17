@@ -11,7 +11,7 @@ export type PanelBounds = {
   height: number;
 };
 
-const STORAGE_KEY = 'next-colocation-widget-panel-bounds';
+const STORAGE_KEY = 'route-lens-panel-bounds';
 const MIN_W = 240;
 const MIN_H = 160;
 const DEFAULT_W = 300;
@@ -155,7 +155,7 @@ export function DraggablePanel({ children, header, fontSizePx }: DraggablePanelP
 
   return (
     <div
-      data-colocation-devtools
+      data-route-lens
       className={`fixed flex flex-col overflow-hidden rounded-lg border border-white/15 bg-zinc-950/95 font-mono text-zinc-100 shadow-2xl ring-1 ring-white/10 backdrop-blur-md ${
         dragging || resizing ? 'select-none touch-none' : ''
       }`}

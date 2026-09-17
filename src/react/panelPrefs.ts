@@ -1,4 +1,4 @@
-const ZOOM_KEY = 'next-colocation-widget-panel-zoom';
+const ZOOM_KEY = 'route-lens-panel-zoom';
 const MIN_ZOOM = 9;
 const MAX_ZOOM = 18;
 const DEFAULT_ZOOM = 11;

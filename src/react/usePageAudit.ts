@@ -32,7 +32,7 @@ export function usePageAudit(
   pathname: string | null,
   options: UsePageAuditOptions = {},
 ): UsePageAuditState {
-  const apiPath = options.apiPath ?? '/api/dev/colocation';
+  const apiPath = options.apiPath ?? '/api/dev/route-lens';
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<PageAuditResult | null>(null);

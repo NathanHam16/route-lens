@@ -16,7 +16,7 @@ const HIGHLIGHT_CLASSES = [
 ] as const;
 
 function isDevToolsElement(element: HTMLElement): boolean {
-  return Boolean(element.closest('[data-colocation-devtools]'));
+  return Boolean(element.closest('[data-route-lens]'));
 }
 
 /** Outermost DOM nodes whose inspect target resolves to `file`. */

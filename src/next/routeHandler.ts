@@ -31,14 +31,14 @@ function groupByBucket(rows: AuditRow[]): Record<string, AuditRow[]> {
 export type CreateColocationRouteOptions = ColocationConfig;
 
 /**
- * Drop into `app/api/dev/colocation/route.ts`:
+ * Drop into `app/api/dev/route-lens/route.ts`:
  *
  * ```ts
- * import { createColocationRouteHandler } from 'next-colocation-widget/next';
- * export const GET = createColocationRouteHandler();
+ * import { createRouteLensHandler } from 'route-lens/next';
+ * export const GET = createRouteLensHandler();
  * ```
  */
-export function createColocationRouteHandler(options: CreateColocationRouteOptions = {}) {
+export function createRouteLensHandler(options: CreateColocationRouteOptions = {}) {
   return async function GET(req: NextRequest) {
     if (process.env.NODE_ENV !== 'development') {
       return new NextResponse(null, { status: 404 });
@@ -80,3 +80,6 @@ export function createColocationRouteHandler(options: CreateColocationRouteOptio
     }
   };
 }
+
+/** @deprecated Use `createRouteLensHandler` */
+export const createColocationRouteHandler = createRouteLensHandler;

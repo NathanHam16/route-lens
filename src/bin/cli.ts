@@ -2,11 +2,11 @@
 import { auditPage } from '../core/audit.js';
 
 function usage(): never {
-  console.error(`Usage: next-colocation-widget <route-or-page> [--suspects-only] [--json]
+  console.error(`Usage: route-lens <route-or-page> [--suspects-only] [--json]
 
 Examples:
-  next-colocation-widget submissions/[id]
-  next-colocation-widget app/foo/page.tsx --json`);
+  route-lens submissions/[id]
+  route-lens app/foo/page.tsx --json`);
   process.exit(1);
 }
 
