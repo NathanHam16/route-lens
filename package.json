@@ -18,7 +18,7 @@
     "route-lens"
   ],
   "bin": {
-    "route-lens": "./dist/bin/cli.js"
+    "route-lens": "dist/bin/cli.js"
   },
   "exports": {
     ".": {
@@ -40,7 +40,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && chmod +x dist/bin/cli.js",
     "dev": "tsup --watch",
     "prepublishOnly": "npm run build"
   },
