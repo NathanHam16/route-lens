@@ -1,0 +1,21 @@
+.github/workflows/ci.yml
+  s_51901096bd830d::t_b0053ac9dbe90b 22-24
+.github/workflows/release.yml
+  s_51901096bd830d::t_2e3dd67f54a861 43-45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "e1a372cd977a09b8b24e5f9330d6b6cdc600c1f6",
+  "prompts": {},
+  "sessions": {
+    "s_51901096bd830d": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "7ed6483a-1375-4a68-83ff-04db50fedf91",
+        "model": "unknown"
+      },
+      "human_author": "Nathan Wang <nathan123wang@gmail.com>"
+    }
+  }
+}
