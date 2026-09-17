@@ -1,0 +1,19 @@
+src/next/routeHandler.ts
+  s_9ca89db16ec5f4::t_b58a157dc09dd5 40,42,45-47,50,63,68,78
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "c8fe17c72af32bfc90b219030557cf7e643d1748",
+  "prompts": {},
+  "sessions": {
+    "s_9ca89db16ec5f4": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4710b1e1-2d01-4074-903e-65025b709bb6",
+        "model": "composer-2.5"
+      },
+      "human_author": "Nathan Wang <nathan123wang@gmail.com>"
+    }
+  }
+}
