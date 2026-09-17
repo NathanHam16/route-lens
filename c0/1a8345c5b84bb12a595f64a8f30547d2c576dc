@@ -1,0 +1,19 @@
+package.json
+  s_5f549eca510777::t_03155a6f1db5d7 82
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "c01a8345c5b84bb12a595f64a8f30547d2c576dc",
+  "prompts": {},
+  "sessions": {
+    "s_5f549eca510777": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "0a92f810-e32f-4e3a-bb48-82836d5e150f",
+        "model": "unknown"
+      },
+      "human_author": "Nathan Wang <nathan123wang@gmail.com>"
+    }
+  }
+}
