@@ -14,8 +14,11 @@ import type { AuditBucket, AuditRow } from '../core/classify.js';
 import { classify } from '../core/classify.js';
 import { buildImportIndex, disambiguateComponentRow, type ImportEdge } from '../core/importGraph.js';
 
-type FiberLike = {
+export type FiberLike = {
   return?: FiberLike;
+  child?: FiberLike;
+  sibling?: FiberLike;
+  stateNode?: unknown;
 };
 
 const SKIP_FIBER_NAMES = new Set([
@@ -160,6 +163,49 @@ export type InspectTarget = {
   bucket: AuditBucket | null;
   source: 'path' | 'name' | 'nearest' | 'none';
 };
+
+/** Map a fiber to an audit row using source path or component name. */
+export function auditFileForFiber(
+  fiber: FiberLike,
+  rows: AuditRow[],
+  importsOf: Map<string, Set<string>>,
+  parentFile: string | null,
+): AuditRow | null {
+  if (isReactSymbolFiber(fiber as Parameters<typeof isReactSymbolFiber>[0])) return null;
+  const pathRow = rowFromFiberPath(fiber, rows);
+  if (pathRow) return pathRow;
+  return rowFromFiberName(fiber, rows, importsOf, parentFile);
+}
+
+/** True when any fiber on this DOM node’s React chain maps to `file`. */
+export function fileAppearsInElementChain(
+  element: HTMLElement,
+  file: string,
+  rows: AuditRow[],
+  edges: ImportEdge[],
+): boolean {
+  const chain = fiberChainFromElement(element);
+  if (chain.length === 0) return false;
+
+  const { importsOf } = buildImportIndex(edges);
+
+  for (let i = 0; i < chain.length; i++) {
+    const fiber = chain[i]!;
+    if (isReactSymbolFiber(fiber as Parameters<typeof isReactSymbolFiber>[0])) continue;
+
+    const pathRow = rowFromFiberPath(fiber, rows);
+    if (pathRow?.file === file) return true;
+
+    const name = getFiberName(fiber as Parameters<typeof getFiberName>[0]);
+    if (!name || SKIP_FIBER_NAMES.has(name)) continue;
+
+    const parentFile = parentFileFromChainIndex(chain, i, rows, importsOf);
+    const row = disambiguateComponentRow(name, rows, parentFile, importsOf);
+    if (row?.file === file) return true;
+  }
+
+  return false;
+}
 
 export function resolveInspectTarget(
   element: HTMLElement,

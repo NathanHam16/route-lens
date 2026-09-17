@@ -1,7 +1,7 @@
 'use client';
 
 import type { AuditBucket } from '../core/classify.js';
-import { COLOCATION_WIDGET_Z } from './widgetLayer.js';
+import { COLOCATION_WIDGET_Z } from './widgetLayer';
 
 export type InspectBadgeProps = {
   file: string | null;

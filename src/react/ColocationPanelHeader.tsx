@@ -1,19 +1,9 @@
 'use client';
 
-import { useMemo } from 'react';
-
 import type { AuditBucket } from '../core/classify.js';
-import {
-  buildImportIndex,
-  fileBasename,
-  formatImporterSummary,
-  importersOf,
-  type ImportEdge,
-} from '../core/importGraph.js';
-import { bucketTextColor } from './FileTreePanel.js';
-
-const MINI_CHECKBOX =
-  'm-0 h-[0.85em] w-[0.85em] shrink-0 appearance-auto accent-sky-500';
+import { fileBasename } from '../core/importGraph.js';
+import type { GraphStep } from '../core/importGraph.js';
+import { bucketTextColor } from './FileTreePanel';
 
 function shortBucket(bucket: AuditBucket): string {
   if (bucket === 'colocated' || bucket === 'product') return 'ok';
@@ -22,24 +12,97 @@ function shortBucket(bucket: AuditBucket): string {
   return bucket;
 }
 
+function pageMatchLabel(count: number | null | undefined, viaShell: boolean | undefined): string {
+  if (count == null) return '';
+  if (count === 0) return 'no DOM';
+  return viaShell ? `${count} boxed (via tree)` : `${count} boxed`;
+}
+
+function CycleButton({
+  direction,
+  disabled,
+  onClick,
+  label,
+}: {
+  direction: 'prev' | 'next';
+  disabled: boolean;
+  onClick?: () => void;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled || !onClick}
+      onPointerDown={(event) => event.preventDefault()}
+      onClick={onClick}
+      aria-label={label}
+      title={label}
+      className={`shrink-0 rounded px-0.5 tabular-nums ${
+        disabled ? 'text-zinc-800' : 'text-zinc-500 hover:bg-white/10 hover:text-zinc-200'
+      }`}
+    >
+      {direction === 'prev' ? '‹' : '›'}
+    </button>
+  );
+}
+
+function NavJumpButton({
+  direction,
+  target,
+  step,
+  onClick,
+}: {
+  direction: 'up' | 'down';
+  target: GraphStep | null | undefined;
+  step: GraphStep | null | undefined;
+  onClick?: () => void;
+}) {
+  const disabled = !target?.file || !onClick;
+  const label = target?.file ? fileBasename(target.file) : '—';
+
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onPointerDown={(event) => {
+        if (!disabled) event.preventDefault();
+      }}
+      onClick={onClick}
+      title={disabled ? undefined : (target?.file ?? undefined)}
+      className={`flex min-w-0 items-center gap-0.5 truncate rounded px-1 py-0.5 ${
+        disabled ? 'text-zinc-700' : 'text-sky-300 hover:bg-sky-900/50 hover:text-white'
+      }`}
+    >
+      <span className="shrink-0">{direction === 'up' ? '↑' : '↓'}</span>
+      <span className="truncate">{label}</span>
+      {step && step.total > 1 ? (
+        <span className="shrink-0 tabular-nums text-zinc-600">
+          {step.index}/{step.total}
+        </span>
+      ) : null}
+    </button>
+  );
+}
+
 export type ColocationPanelHeaderProps = {
   routeLabel: string;
   focusFile?: string;
   focusRootBucket?: AuditBucket;
-  hoveredFile?: string | null;
   entryFile?: string;
-  edges: ImportEdge[];
-  /** When focused: smells in files this component imports (not the root). */
   counts: { ok: number; cross: number; audit: number };
   countsAreDownstream: boolean;
-  /** How many DOM instances of the focused file were boxed on the page. */
   pageMatchCount?: number | null;
-  inspectMode: boolean;
-  hideShared: boolean;
+  pageMatchViaShell?: boolean;
   fontPx: number;
-  onInspectChange: (value: boolean) => void;
-  onHideSharedChange: (value: boolean) => void;
   onClearFocus: () => void;
+  onNavigateUp?: () => void;
+  onNavigateDown?: () => void;
+  onCycleParentPrev?: () => void;
+  onCycleParentNext?: () => void;
+  onCycleChildPrev?: () => void;
+  onCycleChildNext?: () => void;
+  navParent?: GraphStep | null;
+  navChild?: GraphStep | null;
   onZoomDelta: (delta: number) => void;
   onClose: () => void;
   ready: boolean;
@@ -49,28 +112,27 @@ export function ColocationPanelHeader({
   routeLabel,
   focusFile,
   focusRootBucket,
-  hoveredFile,
-  entryFile,
-  edges,
   counts,
   countsAreDownstream,
   pageMatchCount,
-  inspectMode,
-  hideShared,
+  pageMatchViaShell,
   fontPx,
-  onInspectChange,
-  onHideSharedChange,
   onClearFocus,
+  onNavigateUp,
+  onNavigateDown,
+  onCycleParentPrev,
+  onCycleParentNext,
+  onCycleChildPrev,
+  onCycleChildNext,
+  navParent,
+  navChild,
   onZoomDelta,
   onClose,
   ready,
 }: ColocationPanelHeaderProps) {
-  const { importedBy } = useMemo(() => buildImportIndex(edges), [edges]);
-
-  const hoverImporters = hoveredFile ? importersOf(hoveredFile, importedBy) : [];
-  const hoverImporterText = hoveredFile
-    ? formatImporterSummary(hoveredFile, hoverImporters, entryFile, 4)
-    : null;
+  const matchLabel = pageMatchLabel(pageMatchCount, pageMatchViaShell);
+  const parentMulti = (navParent?.total ?? 0) > 1;
+  const childMulti = (navChild?.total ?? 0) > 1;
 
   return (
     <div className="divide-y divide-white/10">
@@ -107,99 +169,107 @@ export function ColocationPanelHeader({
         </button>
       </div>
 
-      {ready ? (
-        focusFile ? (
-          <div className="space-y-0.5 bg-sky-950/50 px-1.5 py-1">
-            <div className="flex items-center gap-1.5 text-sky-100">
-              <span className="shrink-0 text-zinc-500">focus</span>
-              <span className="min-w-0 truncate font-medium" title={focusFile}>
+      {ready && focusFile ? (
+        <div className="space-y-1 bg-sky-950/40 px-1.5 py-1">
+          <div className="flex min-w-0 items-center gap-1">
+            <div className="flex min-w-0 flex-1 items-center gap-0.5">
+              {parentMulti ? (
+                <>
+                  <CycleButton
+                    direction="prev"
+                    disabled={!parentMulti}
+                    onClick={onCycleParentPrev}
+                    label="Previous parent"
+                  />
+                  <CycleButton
+                    direction="next"
+                    disabled={!parentMulti}
+                    onClick={onCycleParentNext}
+                    label="Next parent"
+                  />
+                </>
+              ) : null}
+              <NavJumpButton
+                direction="up"
+                target={navParent}
+                step={navParent}
+                onClick={onNavigateUp}
+              />
+            </div>
+
+            <div className="flex shrink-0 items-center gap-1 px-1 text-sky-100">
+              <span className="max-w-[5.5rem] truncate font-medium" title={focusFile}>
                 {fileBasename(focusFile)}
               </span>
-              {focusRootBucket ? (
-                <span className={`shrink-0 ${bucketTextColor(focusRootBucket)}`}>
-                  = {shortBucket(focusRootBucket)}
-                </span>
-              ) : null}
               <button
                 type="button"
                 onClick={onClearFocus}
-                className="ml-auto shrink-0 rounded px-1 text-sky-300 hover:bg-sky-900/60 hover:text-white"
+                className="rounded px-0.5 font-bold text-sky-300 hover:bg-sky-900/60 hover:text-white"
                 aria-label="Clear focus"
-                title="Clear focus"
               >
                 ×
               </button>
+              {focusRootBucket ? (
+                <span className={`text-[10px] ${bucketTextColor(focusRootBucket)}`}>
+                  {shortBucket(focusRootBucket)}
+                </span>
+              ) : null}
             </div>
-            <p className="text-zinc-500">
-              {pageMatchCount == null ? (
-                'Tree shows what it imports'
-              ) : pageMatchCount > 0 ? (
+
+            <div className="flex min-w-0 flex-1 items-center justify-end gap-0.5">
+              <NavJumpButton
+                direction="down"
+                target={navChild}
+                step={navChild}
+                onClick={onNavigateDown}
+              />
+              {childMulti ? (
                 <>
-                  <span className="text-sky-400">{pageMatchCount}</span> on page (sky box)
-                  · red/orange = downstream imports
+                  <CycleButton
+                    direction="prev"
+                    disabled={!childMulti}
+                    onClick={onCycleChildPrev}
+                    label="Previous import"
+                  />
+                  <CycleButton
+                    direction="next"
+                    disabled={!childMulti}
+                    onClick={onCycleChildNext}
+                    label="Next import"
+                  />
                 </>
-              ) : (
-                'Not mounted on page right now · red/orange = downstream imports'
-              )}
-            </p>
+              ) : null}
+            </div>
           </div>
-        ) : (
-          <div className="px-1.5 py-0.5 text-zinc-600">full page · click file or inspect to focus</div>
-        )
+
+          <div className="flex items-center justify-between gap-2 text-[10px] text-zinc-600">
+            <span>{matchLabel || 'tree = downstream imports'}</span>
+            <span className="shrink-0 tabular-nums">
+              ↑↓ go · ←→ imports · ⇧←→ parents
+            </span>
+          </div>
+        </div>
+      ) : ready ? (
+        <div className="px-1.5 py-0.5 text-zinc-600">
+          click file to focus · ↑↓ parent/child · ←→ cycle imports
+        </div>
       ) : null}
 
       {ready ? (
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-1.5 py-1">
-          <label className="flex shrink-0 cursor-pointer items-center gap-0.5">
-            <input
-              type="checkbox"
-              checked={inspectMode}
-              onChange={(event) => onInspectChange(event.target.checked)}
-              className={MINI_CHECKBOX}
-            />
-            <span>inspect</span>
-          </label>
-          <label className="flex shrink-0 cursor-pointer items-center gap-0.5">
-            <input
-              type="checkbox"
-              checked={!hideShared}
-              onChange={(event) => onHideSharedChange(!event.target.checked)}
-              className={MINI_CHECKBOX}
-            />
-            <span>lib</span>
-          </label>
-          <div className="ml-auto flex shrink-0 flex-wrap items-center gap-x-2 tabular-nums">
-            {countsAreDownstream ? (
-              <span className="text-zinc-600">downstream </span>
-            ) : null}
-            <span title="Colocated or product — correct tree">
-              <span className="text-zinc-600">ok </span>
-              <span className="text-green-400">{counts.ok}</span>
+        <div className="flex items-center justify-between gap-2 px-1.5 py-0.5 tabular-nums">
+          <span className="text-zinc-600">{countsAreDownstream ? 'downstream' : 'page'}</span>
+          <span className="flex shrink-0 items-center gap-x-2">
+            <span className="text-green-400" title="Colocated or product">
+              {counts.ok}
             </span>
-            <span title="Cross-route — wrong feature tree">
-              <span className="text-zinc-600">cross </span>
-              <span className="text-red-400">{counts.cross}</span>
+            <span className="text-red-400" title="Cross-route">
+              {counts.cross}
             </span>
-            <span title="Shared-feature / other — audit single owner">
-              <span className="text-zinc-600">audit </span>
-              <span className="text-orange-400">{counts.audit}</span>
+            <span className="text-orange-400" title="Shared-feature / other">
+              {counts.audit}
             </span>
-          </div>
+          </span>
         </div>
-      ) : null}
-
-      {ready && hoveredFile ? (
-        <div className="truncate px-1.5 py-0.5 text-zinc-500" title={hoveredFile}>
-          <span className="text-zinc-600">{fileBasename(hoveredFile)} </span>
-          <span className="text-zinc-600">← </span>
-          {hoverImporters.length === 0 ? (
-            <span>{entryFile && hoveredFile === entryFile ? 'page entry' : 'no importers'}</span>
-          ) : (
-            <span className="text-zinc-400">imported by {hoverImporterText}</span>
-          )}
-        </div>
-      ) : ready ? (
-        <div className="px-1.5 py-0.5 text-zinc-700">hover → importers</div>
       ) : null}
     </div>
   );

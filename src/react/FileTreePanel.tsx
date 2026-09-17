@@ -1,15 +1,19 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
-import { buildFileTree, dominantBucket, type FileTreeNode } from '../core/buildFileTree.js';
+import { importCountsForRow } from '../core/auditMetrics.js';
+import { scrollAuditFileToTop } from './scrollAuditFileToTop';
+
+import { buildFileTree, dominantBucket, sortFileTreeBySmells, type FileTreeNode } from '../core/buildFileTree.js';
 import type { AuditBucket, AuditRow } from '../core/classify.js';
 import {
   buildImportIndex,
-  formatImporterSummary,
+  componentImportsOf,
   importersOf,
   type ImportEdge,
 } from '../core/importGraph.js';
+import type { PanelSettings } from './panelSettings';
 
 export function bucketTextColor(bucket: AuditBucket): string {
   switch (bucket) {
@@ -39,11 +43,66 @@ function folderTextColor(node: FileTreeNode): string {
   return 'text-zinc-500';
 }
 
-function importerTooltip(file: string, importers: string[], entryFile?: string): string {
-  if (importers.length === 0) {
-    return entryFile && file === entryFile ? `${file}\npage entry` : `${file}\nno importers`;
-  }
-  return `${file}\n← ${importers.map((i) => i.split('/').pop()).join(', ')}`;
+function graphTooltip(
+  file: string,
+  row: AuditRow,
+  importers: string[],
+  imports: string[],
+  entryFile?: string,
+): string {
+  const lines = [file];
+  if (row.note) lines.push(row.note);
+  if (row.lineCount != null) lines.push(`${row.lineCount} lines`);
+  if (row.useClient) lines.push('use client');
+  lines.push(
+    importers.length === 0
+      ? entryFile && file === entryFile
+        ? '← page entry'
+        : '← no importers'
+      : `← ${importers.map((i) => i.split('/').pop()).join(', ')}`,
+  );
+  lines.push(imports.length === 0 ? '→ none' : `→ ${imports.map((i) => i.split('/').pop()).join(', ')}`);
+  return lines.join('\n');
+}
+
+function displayName(row: AuditRow, settings: PanelSettings): string {
+  if (settings.showFullPath) return row.file;
+  return row.file.split('/').pop() ?? row.file;
+}
+
+function RowBadges({
+  row,
+  settings,
+  importCounts,
+  graphDepth,
+  mounted,
+}: {
+  row: AuditRow;
+  settings: PanelSettings;
+  importCounts: { importers: number; imports: number };
+  graphDepth?: number;
+  mounted: boolean;
+}) {
+  const showAny =
+    settings.showImportCount ||
+    settings.showImporterCount ||
+    settings.showLineCount ||
+    settings.showGraphDepth ||
+    settings.showNoDomTag;
+
+  if (!showAny) return null;
+
+  return (
+    <span className="ml-auto flex shrink-0 items-center gap-1 tabular-nums text-[10px] text-zinc-600">
+      {settings.showNoDomTag && row.file.endsWith('.tsx') && !mounted ? (
+        <span className="text-zinc-700">0dom</span>
+      ) : null}
+      {settings.showGraphDepth && graphDepth != null ? <span>d{graphDepth}</span> : null}
+      {settings.showLineCount && row.lineCount != null ? <span>{row.lineCount}L</span> : null}
+      {settings.showImporterCount ? <span>←{importCounts.importers}</span> : null}
+      {settings.showImportCount ? <span>→{importCounts.imports}</span> : null}
+    </span>
+  );
 }
 
 /** Folder paths that must be open to reveal `file`. */
@@ -62,12 +121,14 @@ export interface FileTreePanelProps {
   rows: AuditRow[];
   edges?: ImportEdge[];
   entryFile?: string;
+  settings: PanelSettings;
+  graphDepths: Map<string, number>;
+  mountedFiles: Set<string>;
   onSelectFile?: (file: string) => void;
   onClearFocus?: () => void;
   onHoverFile?: (file: string | null) => void;
   selectedFile?: string;
   focusFile?: string;
-  hideShared?: boolean;
 }
 
 function TreeNode({
@@ -75,27 +136,33 @@ function TreeNode({
   depth,
   collapsed,
   toggle,
-  selectedFile,
   focusFile,
   onSelectFile,
   onClearFocus,
   onHoverFile,
   importedBy,
+  importsOf,
   entryFile,
   hoveredFile,
+  settings,
+  graphDepths,
+  mountedFiles,
 }: {
   node: FileTreeNode;
   depth: number;
   collapsed: Set<string>;
   toggle: (path: string) => void;
-  selectedFile?: string;
   focusFile?: string;
   onSelectFile?: (file: string) => void;
   onClearFocus?: () => void;
   onHoverFile?: (file: string | null) => void;
   importedBy: Map<string, Set<string>>;
+  importsOf: Map<string, Set<string>>;
   entryFile?: string;
   hoveredFile: string | null;
+  settings: PanelSettings;
+  graphDepths: Map<string, number>;
+  mountedFiles: Set<string>;
 }) {
   const isFolder = !node.row;
   const isCollapsed = isFolder && collapsed.has(node.path);
@@ -121,14 +188,17 @@ function TreeNode({
                 depth={depth + 1}
                 collapsed={collapsed}
                 toggle={toggle}
-                selectedFile={selectedFile}
                 focusFile={focusFile}
                 onSelectFile={onSelectFile}
                 onClearFocus={onClearFocus}
                 onHoverFile={onHoverFile}
                 importedBy={importedBy}
+                importsOf={importsOf}
                 entryFile={entryFile}
                 hoveredFile={hoveredFile}
+                settings={settings}
+                graphDepths={graphDepths}
+                mountedFiles={mountedFiles}
               />
             ))
           : null}
@@ -140,23 +210,41 @@ function TreeNode({
   const isFocusRoot = focusFile === row.file;
   const isHovered = hoveredFile === row.file;
   const importers = importersOf(row.file, importedBy);
-  const importerLabel = formatImporterSummary(row.file, importers, entryFile, 2);
+  const imports = componentImportsOf(row.file, importsOf);
+  const importCounts = importCountsForRow(row.file, importedBy, importsOf);
+  const label = displayName(row, settings);
+  const dimUnmounted = settings.showNoDomTag && row.file.endsWith('.tsx') && !mountedFiles.has(row.file);
+  const smellNote =
+    settings.showSmellNotes && row.note ? (
+      <span className="min-w-0 truncate text-orange-400/80">{row.note}</span>
+    ) : row.note ? (
+      <span className="ml-auto shrink-0 text-orange-400/70">!</span>
+    ) : null;
 
   if (isFocusRoot) {
     return (
       <div
         data-audit-file={row.file}
-        className="flex items-center gap-0.5 bg-sky-500/25 py-px pr-0.5 ring-1 ring-inset ring-sky-400/70"
+        className={`flex items-center gap-0.5 bg-sky-500/25 py-px pr-0.5 ring-1 ring-inset ring-sky-400/70 ${
+          dimUnmounted ? 'opacity-60' : ''
+        }`}
         style={{ paddingLeft: `${pad + 0.75}em` }}
         onMouseEnter={() => onHoverFile?.(row.file)}
       >
         <button
           type="button"
-          title={importerTooltip(row.file, importers, entryFile)}
+          title={graphTooltip(row.file, row, importers, imports, entryFile)}
           onClick={() => onSelectFile?.(row.file)}
-          className="min-w-0 flex-1 truncate text-left font-medium text-sky-100 hover:opacity-90"
+          className="flex min-w-0 flex-1 items-center gap-1 truncate text-left font-medium text-sky-100 hover:opacity-90"
         >
-          {node.name}
+          <span className="truncate">{label}</span>
+          <RowBadges
+            row={row}
+            settings={settings}
+            importCounts={importCounts}
+            graphDepth={graphDepths.get(row.file)}
+            mounted={mountedFiles.has(row.file)}
+          />
         </button>
         <button
           type="button"
@@ -164,7 +252,7 @@ function TreeNode({
             event.stopPropagation();
             onClearFocus?.();
           }}
-          className="shrink-0 rounded px-1 text-sky-300 hover:bg-sky-900/50 hover:text-white"
+          className="shrink-0 rounded px-0.5 font-bold text-sky-300 hover:bg-sky-900/50 hover:text-white"
           aria-label="Clear focus"
           title="Clear focus"
         >
@@ -178,19 +266,23 @@ function TreeNode({
     <button
       type="button"
       data-audit-file={row.file}
-      title={importerTooltip(row.file, importers, entryFile)}
+      title={graphTooltip(row.file, row, importers, imports, entryFile)}
       onClick={() => onSelectFile?.(row.file)}
       onMouseEnter={() => onHoverFile?.(row.file)}
       className={`flex w-full items-center gap-1 py-px pr-0.5 text-left hover:bg-white/5 ${
         isHovered ? 'bg-white/[0.06]' : ''
-      }`}
+      } ${dimUnmounted ? 'opacity-50' : ''}`}
       style={{ paddingLeft: `${pad + 0.75}em` }}
     >
-      <span className={`min-w-0 shrink truncate ${bucketTextColor(row.bucket)}`}>{node.name}</span>
-      {isHovered ? (
-        <span className="min-w-0 truncate text-zinc-600">← {importerLabel}</span>
-      ) : null}
-      {row.note ? <span className="ml-auto shrink-0 text-orange-400/70">!</span> : null}
+      <span className={`min-w-0 shrink truncate ${bucketTextColor(row.bucket)}`}>{label}</span>
+      {smellNote}
+      <RowBadges
+        row={row}
+        settings={settings}
+        importCounts={importCounts}
+        graphDepth={graphDepths.get(row.file)}
+        mounted={mountedFiles.has(row.file)}
+      />
     </button>
   );
 }
@@ -214,25 +306,34 @@ export function FileTreePanel({
   rows,
   edges = [],
   entryFile,
+  settings,
+  graphDepths,
+  mountedFiles,
   onSelectFile,
   onClearFocus,
   onHoverFile,
-  selectedFile,
   focusFile,
-  hideShared = true,
 }: FileTreePanelProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [tailPadPx, setTailPadPx] = useState(0);
 
   const filtered = useMemo(() => {
     return rows.filter((row) => {
-      if (hideShared && row.bucket === 'shared') return false;
-      if (hideShared && row.bucket === 'logic') return false;
+      if (settings.smellsOnly && !['cross-route', 'shared-feature', 'other'].includes(row.bucket)) {
+        return false;
+      }
+      if (settings.hideShared && row.bucket === 'shared') return false;
+      if (settings.hideShared && row.bucket === 'logic') return false;
       return true;
     });
-  }, [hideShared, rows]);
+  }, [rows, settings.hideShared, settings.smellsOnly]);
 
-  const { importedBy } = useMemo(() => buildImportIndex(edges), [edges]);
-  const tree = useMemo(() => buildFileTree(filtered), [filtered]);
+  const { importedBy, importsOf } = useMemo(() => buildImportIndex(edges), [edges]);
+  const tree = useMemo(() => {
+    const built = buildFileTree(filtered);
+    if (settings.sortSmellsFirst) sortFileTreeBySmells(built);
+    return built;
+  }, [filtered, settings.sortSmellsFirst]);
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const [hoveredFile, setHoveredFile] = useState<string | null>(null);
 
@@ -261,44 +362,54 @@ export function FileTreePanel({
     });
   }, [focusFile]);
 
-  useEffect(() => {
-    if (!focusFile || !scrollRef.current) return;
-    const frame = requestAnimationFrame(() => {
-      const el = scrollRef.current?.querySelector(
-        `[data-audit-file="${CSS.escape(focusFile)}"]`,
-      );
-      el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-    });
-    return () => cancelAnimationFrame(frame);
-  }, [focusFile, filtered, collapsed]);
+  useLayoutEffect(() => {
+    const scroller = scrollRef.current;
+    if (!scroller || !focusFile) {
+      setTailPadPx(0);
+      return;
+    }
+    setTailPadPx(scrollAuditFileToTop(scroller, focusFile));
+  }, [collapsed, focusFile, filtered]);
+
+  useLayoutEffect(() => {
+    const scroller = scrollRef.current;
+    if (!scroller || !focusFile || tailPadPx === 0) return;
+    scrollAuditFileToTop(scroller, focusFile);
+  }, [focusFile, tailPadPx]);
 
   if (filtered.length === 0) {
-    return <p className="p-1 text-zinc-500">No files</p>;
+    return <p className="p-1 text-zinc-500">No files — try settings → smells only off</p>;
   }
 
   return (
     <div
       ref={scrollRef}
       className="min-h-0 flex-1 overflow-y-auto py-px leading-tight"
+      style={tailPadPx > 0 ? { paddingBottom: tailPadPx } : undefined}
       onMouseLeave={() => handleHover(null)}
     >
-      {tree.children.map((child) => (
-        <TreeNode
-          key={child.path}
-          node={child}
-          depth={0}
-          collapsed={collapsed}
-          toggle={toggle}
-          selectedFile={selectedFile}
-          focusFile={focusFile}
-          onSelectFile={onSelectFile}
-          onClearFocus={onClearFocus}
-          onHoverFile={handleHover}
-          importedBy={importedBy}
-          entryFile={entryFile}
-          hoveredFile={hoveredFile}
-        />
-      ))}
+      <div>
+        {tree.children.map((child) => (
+          <TreeNode
+            key={child.path}
+            node={child}
+            depth={0}
+            collapsed={collapsed}
+            toggle={toggle}
+            focusFile={focusFile}
+            onSelectFile={onSelectFile}
+            onClearFocus={onClearFocus}
+            onHoverFile={handleHover}
+            importedBy={importedBy}
+            importsOf={importsOf}
+            entryFile={entryFile}
+            hoveredFile={hoveredFile}
+            settings={settings}
+            graphDepths={graphDepths}
+            mountedFiles={mountedFiles}
+          />
+        ))}
+      </div>
     </div>
   );
 }

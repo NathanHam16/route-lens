@@ -1,8 +1,16 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEventHandler,
+  type ReactNode,
+  type Ref,
+} from 'react';
 
-import { COLOCATION_WIDGET_Z } from './widgetLayer.js';
+import { COLOCATION_WIDGET_Z } from './widgetLayer';
 
 export type PanelBounds = {
   x: number;
@@ -64,9 +72,17 @@ export type DraggablePanelProps = {
   children: ReactNode;
   header: ReactNode;
   fontSizePx: number;
+  panelRef?: Ref<HTMLDivElement>;
+  onPanelKeyDown?: KeyboardEventHandler<HTMLDivElement>;
 };
 
-export function DraggablePanel({ children, header, fontSizePx }: DraggablePanelProps) {
+export function DraggablePanel({
+  children,
+  header,
+  fontSizePx,
+  panelRef,
+  onPanelKeyDown,
+}: DraggablePanelProps) {
   const [bounds, setBounds] = useState<PanelBounds>(() => loadBounds());
   const dragRef = useRef<{ startX: number; startY: number; orig: PanelBounds } | null>(null);
   const resizeRef = useRef<{ startX: number; startY: number; orig: PanelBounds } | null>(null);
@@ -181,7 +197,14 @@ export function DraggablePanel({ children, header, fontSizePx }: DraggablePanelP
         {header}
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</div>
+      <div
+        ref={panelRef}
+        tabIndex={-1}
+        onKeyDown={onPanelKeyDown}
+        className="flex min-h-0 flex-1 flex-col overflow-hidden outline-none focus:ring-1 focus:ring-inset focus:ring-sky-500/30"
+      >
+        {children}
+      </div>
 
       <div
         role="separator"

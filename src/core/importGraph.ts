@@ -1,4 +1,5 @@
 import type { AuditRow } from './classify.js';
+import { rowsForComponentName } from './auditSymbols.js';
 
 export type ImportEdge = { from: string; to: string };
 
@@ -28,6 +29,51 @@ export function importersOf(file: string, importedBy: Map<string, Set<string>>):
   return [...(importedBy.get(file) ?? [])].sort((a, b) => a.localeCompare(b));
 }
 
+/** Direct imports from `file`, sorted by path. */
+export function directImportsOf(file: string, importsOf: Map<string, Set<string>>): string[] {
+  return [...(importsOf.get(file) ?? [])].sort((a, b) => a.localeCompare(b));
+}
+
+/** Prefer `.tsx` children; fall back to all direct imports when none. */
+export function componentImportsOf(file: string, importsOf: Map<string, Set<string>>): string[] {
+  const all = directImportsOf(file, importsOf);
+  const tsx = all.filter((path) => path.endsWith('.tsx'));
+  return tsx.length > 0 ? tsx : all;
+}
+
+/** Direct parent components in the import graph (↑ navigation). */
+export function graphParents(file: string, importedBy: Map<string, Set<string>>): string[] {
+  const all = importersOf(file, importedBy);
+  const tsx = all.filter((path) => path.endsWith('.tsx'));
+  return tsx.length > 0 ? tsx : all;
+}
+
+/** Direct child components in the import graph (↓ navigation). */
+export function graphChildren(file: string, importsOf: Map<string, Set<string>>): string[] {
+  return componentImportsOf(file, importsOf);
+}
+
+export type GraphStep = {
+  file: string | null;
+  /** 1-based index in the neighbor list. */
+  index: number;
+  total: number;
+};
+
+/** Pick neighbor at `step` (0-based, wraps). */
+export function pickGraphNeighbor(list: string[], step: number): GraphStep {
+  if (list.length === 0) return { file: null, index: 0, total: 0 };
+  const normalized = ((step % list.length) + list.length) % list.length;
+  return { file: list[normalized]!, index: normalized + 1, total: list.length };
+}
+
+function formatBasenameList(files: string[], max: number): string {
+  const names = files.map(fileBasename);
+  if (names.length === 0) return 'none';
+  if (names.length <= max) return names.join(', ');
+  return `${names.slice(0, max).join(', ')} +${names.length - max} more`;
+}
+
 /** One-line hover label: `Viewer.tsx, Sidebar.tsx` or `page entry`. */
 export function formatImporterSummary(
   file: string,
@@ -38,9 +84,13 @@ export function formatImporterSummary(
   if (importers.length === 0) {
     return entryFile && file === entryFile ? 'page entry' : 'no importers in graph';
   }
-  const names = importers.map(fileBasename);
-  if (names.length <= max) return names.join(', ');
-  return `${names.slice(0, max).join(', ')} +${names.length - max} more`;
+  return formatBasenameList(importers, max);
+}
+
+/** One-line label for direct child imports. */
+export function formatChildImportSummary(imports: string[], max = 3): string {
+  if (imports.length === 0) return 'none';
+  return formatBasenameList(imports, max);
 }
 
 /** Files reachable by following imports downstream from `root`. */
@@ -85,9 +135,7 @@ export function disambiguateComponentRow(
   parentFile: string | null,
   importsOf: Map<string, Set<string>>,
 ): AuditRow | null {
-  const matches = rows.filter(
-    (row) => row.component === componentName || row.file.endsWith(`/${componentName}.tsx`),
-  );
+  const matches = rowsForComponentName(componentName, rows);
   if (matches.length === 0) return null;
   if (matches.length === 1) return matches[0]!;
 

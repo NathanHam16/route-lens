@@ -1,5 +1,3 @@
-import { NextRequest, NextResponse } from 'next/server';
-
 import { auditPage } from '../core/audit.js';
 import type { ColocationConfig } from '../core/config.js';
 import { resolveConfig } from '../core/config.js';
@@ -39,16 +37,17 @@ export type CreateColocationRouteOptions = ColocationConfig;
  * ```
  */
 export function createRouteLensHandler(options: CreateColocationRouteOptions = {}) {
-  return async function GET(req: NextRequest) {
+  return async function GET(req: Request): Promise<Response> {
     if (process.env.NODE_ENV !== 'development') {
-      return new NextResponse(null, { status: 404 });
+      return new Response(null, { status: 404 });
     }
 
-    const routeParam = req.nextUrl.searchParams.get('route');
-    const pathnameParam = req.nextUrl.searchParams.get('pathname');
+    const url = new URL(req.url);
+    const routeParam = url.searchParams.get('route');
+    const pathnameParam = url.searchParams.get('pathname');
 
     if (!routeParam && !pathnameParam) {
-      return NextResponse.json(
+      return Response.json(
         { error: 'Provide ?route=submissions/[id] or ?pathname=/submissions/abc' },
         { status: 400 },
       );
@@ -61,12 +60,12 @@ export function createRouteLensHandler(options: CreateColocationRouteOptions = {
       routeArg = routeParam ?? pathnameToRoute(pathnameParam!, config);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      return NextResponse.json({ error: message }, { status: 400 });
+      return Response.json({ error: message }, { status: 400 });
     }
 
     try {
       const result = auditPage(routeArg, options);
-      return NextResponse.json({
+      return Response.json({
         entry: result.entry,
         routeRoot: result.routeRoot,
         counts: result.counts,
@@ -76,7 +75,7 @@ export function createRouteLensHandler(options: CreateColocationRouteOptions = {
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      return NextResponse.json({ error: message }, { status: 500 });
+      return Response.json({ error: message }, { status: 500 });
     }
   };
 }
