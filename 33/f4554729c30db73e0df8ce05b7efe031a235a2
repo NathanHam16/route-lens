@@ -1,0 +1,49 @@
+src/react/resolveInspect.ts
+  s_9ca89db16ec5f4::t_a2282eb1f2dd82 18
+  s_9ca89db16ec5f4::t_3bf1c5d199416f 177,181
+  s_9ca89db16ec5f4::t_4718f1488089f7 197,200
+  s_9ca89db16ec5f4::t_aa406643cfcce5 40-41
+src/core/importGraph.ts
+  s_9ca89db16ec5f4::t_8ee803754be8a8 114-148
+src/react/SettingsPanel.tsx
+  s_9ca89db16ec5f4::t_6b002568354f7e 152-156
+test/focusImportScope.test.ts
+  s_9ca89db16ec5f4::t_538c31f8582f62 1-27
+src/react/ColocationPanelHeader.tsx
+  s_9ca89db16ec5f4::t_c89ced9c90ea2c 96-97
+  s_9ca89db16ec5f4::t_a95cccb33f6943 123-124
+  s_9ca89db16ec5f4::t_05febdadf3e735 271,277-289
+  s_9ca89db16ec5f4::t_b53a884b9d0d41 272-275
+  s_9ca89db16ec5f4::t_d4dc103380b6e7 301-305
+src/react/panelSettings.ts
+  s_9ca89db16ec5f4::t_a59a2c35d14278 14-15,29
+  s_9ca89db16ec5f4::t_8f02cf3a24560b 41,57,73
+src/react/ColocationDevTools.tsx
+  s_9ca89db16ec5f4::t_53cb56b39a9b80 23
+  s_9ca89db16ec5f4::t_d3dbd033727c7e 329
+  s_9ca89db16ec5f4::t_36e7296573259e 470
+  s_9ca89db16ec5f4::t_2de2a4bc87412f 501-502
+  s_9ca89db16ec5f4::t_5c12edf44d4902 311,448
+  s_9ca89db16ec5f4::t_9a0c6f8192f192 241,243-251
+  s_9ca89db16ec5f4::t_c4bbe55b62a859 159-160
+package.json
+  s_9ca89db16ec5f4::t_449dbf27c2941f 3
+CHANGELOG.md
+  s_9ca89db16ec5f4::t_a01511a84b6a2f 10-15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "33f4554729c30db73e0df8ce05b7efe031a235a2",
+  "prompts": {},
+  "sessions": {
+    "s_9ca89db16ec5f4": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4710b1e1-2d01-4074-903e-65025b709bb6",
+        "model": "composer-2.5"
+      },
+      "human_author": "Nathan Wang <nathan123wang@gmail.com>"
+    }
+  }
+}
