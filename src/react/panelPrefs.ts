@@ -1,7 +1,7 @@
 const ZOOM_KEY = 'route-lens-panel-zoom';
 const MIN_ZOOM = 9;
 const MAX_ZOOM = 18;
-const DEFAULT_ZOOM = 11;
+const DEFAULT_ZOOM = 12;
 
 export function loadPanelZoom(): number {
   if (typeof window === 'undefined') return DEFAULT_ZOOM;

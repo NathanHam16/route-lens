@@ -73,9 +73,8 @@ export function createRouteLensHandler(options: CreateColocationRouteOptions = {
         edges: result.edges,
         all: groupByBucket(result.all),
       });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      return Response.json({ error: message }, { status: 500 });
+    } catch {
+      return Response.json({ error: 'Page audit failed' }, { status: 500 });
     }
   };
 }

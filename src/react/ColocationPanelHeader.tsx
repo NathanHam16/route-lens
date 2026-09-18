@@ -1,5 +1,7 @@
 'use client';
 
+import { Crosshair } from 'lucide-react';
+
 import type { AuditBucket } from '../core/classify.js';
 import { fileBasename } from '../core/importGraph.js';
 import type { GraphStep } from '../core/importGraph.js';
@@ -104,6 +106,8 @@ export type ColocationPanelHeaderProps = {
   navParent?: GraphStep | null;
   navChild?: GraphStep | null;
   onZoomDelta: (delta: number) => void;
+  inspectMode: boolean;
+  onInspectToggle: () => void;
   onClose: () => void;
   ready: boolean;
 };
@@ -127,6 +131,8 @@ export function ColocationPanelHeader({
   navParent,
   navChild,
   onZoomDelta,
+  inspectMode,
+  onInspectToggle,
   onClose,
   ready,
 }: ColocationPanelHeaderProps) {
@@ -159,6 +165,21 @@ export function ColocationPanelHeader({
             +
           </button>
         </span>
+        <button
+          type="button"
+          onClick={onInspectToggle}
+          aria-pressed={inspectMode}
+          aria-label="Inspect page components"
+          title="Inspect — hover page to identify files · I to toggle"
+          className={`flex shrink-0 items-center gap-0.5 rounded px-1 py-0.5 ${
+            inspectMode
+              ? 'bg-sky-900/70 text-sky-200 ring-1 ring-sky-500/50'
+              : 'text-zinc-500 hover:bg-white/10 hover:text-zinc-200'
+          }`}
+        >
+          <Crosshair className="h-3 w-3 shrink-0" aria-hidden />
+          <span className="text-[10px] uppercase tracking-wide">inspect</span>
+        </button>
         <button
           type="button"
           onClick={onClose}
@@ -250,23 +271,25 @@ export function ColocationPanelHeader({
           </div>
         </div>
       ) : ready ? (
-        <div className="px-1.5 py-0.5 text-zinc-600">
-          click file to focus · ↑↓ parent/child · ←→ cycle imports
+        <div className="px-1.5 py-0.5 text-zinc-500">
+          click file to focus · Inspect to hover page · I toggles inspect
         </div>
       ) : null}
 
       {ready ? (
         <div className="flex items-center justify-between gap-2 px-1.5 py-0.5 tabular-nums">
-          <span className="text-zinc-600">{countsAreDownstream ? 'downstream' : 'page'}</span>
-          <span className="flex shrink-0 items-center gap-x-2">
-            <span className="text-green-400" title="Colocated or product">
-              {counts.ok}
+          <span className="text-zinc-500">
+            {countsAreDownstream ? 'smells · downstream' : 'smells · this page'}
+          </span>
+          <span className="flex shrink-0 items-center gap-x-2 text-[10px]">
+            <span className="text-green-400" title="Green — colocated or product">
+              ok {counts.ok}
             </span>
-            <span className="text-red-400" title="Cross-route">
-              {counts.cross}
+            <span className="text-red-400" title="Red — imported from another route">
+              cross {counts.cross}
             </span>
-            <span className="text-orange-400" title="Shared-feature / other">
-              {counts.audit}
+            <span className="text-orange-400" title="Orange — shared feature or other smell">
+              audit {counts.audit}
             </span>
           </span>
         </div>

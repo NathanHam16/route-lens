@@ -69,8 +69,57 @@ If your API route is not at the default path, pass `apiPath`:
 
 1. Run your Next.js dev server.
 2. Navigate to any App Router page.
-3. Click **loc** (bottom-left) or press `Alt+Shift+C` to open the panel.
-4. Drag to move, resize from the bottom-right corner. Toggle **lib** to show/hide shared paths (`lib/`, `components/ui/`, etc.).
+3. Click the folder-tree widget (bottom-left) or press `Alt+Shift+C` to open the panel.
+4. Drag to move, resize from the bottom-right corner. Expand **settings** for presets and tree badges.
+
+| Shortcut | Action |
+|----------|--------|
+| `Alt+Shift+C` | Toggle panel |
+| `↑` / `↓` | Jump to parent / child in import graph |
+| `←` / `→` | Cycle multiple imports |
+| `⇧←` / `⇧→` | Cycle multiple parents |
+
+**Settings presets:** `default` · `audit` (smells only) · `navigate` (import counts + depth) · `debug` (all badges).
+
+## Visual tour
+
+Screenshots from the [colocation demo app](https://github.com/NathanHam16/route-lens/tree/main/examples/colocation-demo) running on `/blog` — a page that imports `ShopCard` from another route (red) and `OrphanWidget` from `components/orphan/` (orange).
+
+### File tree
+
+Color-coded import tree: green = colocated, red = cross-route, orange = shared-feature smell.
+
+![File tree with color-coded buckets](./docs/screenshots/02-panel-tree.png)
+
+### Settings — debug preset
+
+All badges: `→N` imports, `←N` importers, `142L` lines, `d4` graph depth, `0dom` not mounted.
+
+![Debug preset with all tree badges](./docs/screenshots/03-settings-debug.png)
+
+### Audit preset
+
+Smells only, sorted first, inline smell notes on suspects.
+
+![Audit preset filtering to smells](./docs/screenshots/04-audit-preset.png)
+
+### Focus + graph navigation
+
+Click a file to focus. Parent/child jump bar at top. Filter toggles lock while focused (full downstream tree).
+
+![Focus on cross-route ShopCard](./docs/screenshots/05-focus-cross-route.png)
+
+### Inspect mode
+
+Hover any DOM node → floating badge with file path and bucket. Click to focus in tree.
+
+![Inspect mode hover badge](./docs/screenshots/06-inspect-mode.png)
+
+### Navigate preset
+
+Import/importer counts and graph depth for walking the import graph.
+
+![Navigate preset badges](./docs/screenshots/07-navigate-preset.png)
 
 ## CLI
 

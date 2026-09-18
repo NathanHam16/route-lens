@@ -12,7 +12,12 @@ import {
 
 import type { AuditBucket, AuditRow } from '../core/classify.js';
 import { classify } from '../core/classify.js';
-import { buildImportIndex, disambiguateComponentRow, type ImportEdge } from '../core/importGraph.js';
+import {
+  buildImportIndex,
+  disambiguateComponentRow,
+  importSubtree,
+  type ImportEdge,
+} from '../core/importGraph.js';
 
 export type FiberLike = {
   return?: FiberLike;
@@ -28,6 +33,13 @@ const SKIP_FIBER_NAMES = new Set([
   'Suspense',
   'Activity',
 ]);
+
+export type ResolveInspectOptions = {
+  /** When set, prefer this file or its downstream imports over deeper leaf components. */
+  focusFile?: string;
+  /** Files with a live DOM mount on the page — used to break name ties. */
+  mountedFiles?: Set<string>;
+};
 
 /** Normalize dev-server paths to src-relative audit paths (`app/...`). */
 export function normalizeAuditPath(rawPath: string | undefined): string | null {
@@ -101,10 +113,11 @@ function rowFromFiberName(
   rows: AuditRow[],
   importsOf: Map<string, Set<string>>,
   parentFile: string | null,
+  mountedFiles?: Set<string>,
 ): AuditRow | null {
   const name = getFiberName(fiber as Parameters<typeof getFiberName>[0]);
   if (!name || SKIP_FIBER_NAMES.has(name)) return null;
-  return disambiguateComponentRow(name, rows, parentFile, importsOf);
+  return disambiguateComponentRow(name, rows, parentFile, importsOf, mountedFiles);
 }
 
 function parentFileFromChainIndex(
@@ -112,14 +125,72 @@ function parentFileFromChainIndex(
   fromIndex: number,
   rows: AuditRow[],
   importsOf: Map<string, Set<string>>,
+  mountedFiles?: Set<string>,
 ): string | null {
   for (let j = fromIndex + 1; j < chain.length; j++) {
     const parentRow =
       rowFromFiberPath(chain[j]!, rows) ??
-      rowFromFiberName(chain[j]!, rows, importsOf, null);
+      rowFromFiberName(chain[j]!, rows, importsOf, null, mountedFiles);
     if (parentRow) return parentRow.file;
   }
   return null;
+}
+
+/** Innermost → outermost audit rows on the React fiber chain for this DOM node. */
+export function auditRowsFromFiberChain(
+  element: HTMLElement,
+  rows: AuditRow[],
+  edges: ImportEdge[],
+  options?: ResolveInspectOptions,
+): AuditRow[] {
+  const chain = fiberChainFromElement(element);
+  if (chain.length === 0) return [];
+
+  const { importsOf } = buildImportIndex(edges);
+  const seen = new Set<string>();
+  const chainRows: AuditRow[] = [];
+
+  for (let i = 0; i < chain.length; i++) {
+    const fiber = chain[i]!;
+    if (isReactSymbolFiber(fiber as Parameters<typeof isReactSymbolFiber>[0])) continue;
+
+    const parentFile = parentFileFromChainIndex(chain, i, rows, importsOf, options?.mountedFiles);
+    const row =
+      rowFromFiberPath(fiber, rows) ??
+      rowFromFiberName(fiber, rows, importsOf, parentFile, options?.mountedFiles);
+    if (row && !seen.has(row.file)) {
+      seen.add(row.file);
+      chainRows.push(row);
+    }
+  }
+
+  return chainRows;
+}
+
+/** Pick the audit row that best matches user intent for inspect / click-to-focus. */
+export function pickInspectRow(
+  chainRows: AuditRow[],
+  importsOf: Map<string, Set<string>>,
+  options?: ResolveInspectOptions,
+): AuditRow | null {
+  if (chainRows.length === 0) return null;
+
+  const focusFile = options?.focusFile;
+  if (focusFile) {
+    const exact = chainRows.find((row) => row.file === focusFile);
+    if (exact) return exact;
+
+    const downstream = importSubtree(focusFile, importsOf);
+    for (let i = chainRows.length - 1; i >= 0; i--) {
+      const row = chainRows[i]!;
+      if (downstream.has(row.file)) return row;
+    }
+  }
+
+  const tsxRows = chainRows.filter((row) => row.file.endsWith('.tsx'));
+  if (tsxRows.length > 0) return tsxRows[0]!;
+
+  return chainRows[0]!;
 }
 
 /**
@@ -130,30 +201,11 @@ export function resolveNearestAuditFile(
   element: HTMLElement,
   rows: AuditRow[],
   edges: ImportEdge[],
+  options?: ResolveInspectOptions,
 ): AuditRow | null {
-  if (rows.length === 0) return null;
-
-  const chain = fiberChainFromElement(element);
-  if (chain.length === 0) return null;
-
   const { importsOf } = buildImportIndex(edges);
-
-  for (const fiber of chain) {
-    if (isReactSymbolFiber(fiber as Parameters<typeof isReactSymbolFiber>[0])) continue;
-    const row = rowFromFiberPath(fiber, rows);
-    if (row) return row;
-  }
-
-  for (let i = 0; i < chain.length; i++) {
-    const fiber = chain[i]!;
-    if (isReactSymbolFiber(fiber as Parameters<typeof isReactSymbolFiber>[0])) continue;
-
-    const parentFile = parentFileFromChainIndex(chain, i, rows, importsOf);
-    const row = rowFromFiberName(fiber, rows, importsOf, parentFile);
-    if (row) return row;
-  }
-
-  return null;
+  const chainRows = auditRowsFromFiberChain(element, rows, edges, options);
+  return pickInspectRow(chainRows, importsOf, options);
 }
 
 export type InspectTarget = {
@@ -161,7 +213,7 @@ export type InspectTarget = {
   lineNumber?: number;
   componentName?: string;
   bucket: AuditBucket | null;
-  source: 'path' | 'name' | 'nearest' | 'none';
+  source: 'path' | 'name' | 'nearest' | 'chain' | 'none';
 };
 
 /** Map a fiber to an audit row using source path or component name. */
@@ -170,11 +222,12 @@ export function auditFileForFiber(
   rows: AuditRow[],
   importsOf: Map<string, Set<string>>,
   parentFile: string | null,
+  mountedFiles?: Set<string>,
 ): AuditRow | null {
   if (isReactSymbolFiber(fiber as Parameters<typeof isReactSymbolFiber>[0])) return null;
   const pathRow = rowFromFiberPath(fiber, rows);
   if (pathRow) return pathRow;
-  return rowFromFiberName(fiber, rows, importsOf, parentFile);
+  return rowFromFiberName(fiber, rows, importsOf, parentFile, mountedFiles);
 }
 
 /** True when any fiber on this DOM node’s React chain maps to `file`. */
@@ -212,29 +265,28 @@ export function resolveInspectTarget(
   rows: AuditRow[],
   routeRoot: string | undefined,
   edges: ImportEdge[],
+  options?: ResolveInspectOptions,
 ): InspectTarget {
   const codeInfo = getElementCodeInfo(element);
-  const pathFile = normalizeAuditPath(codeInfo?.relativePath ?? codeInfo?.absolutePath);
   const lineNumber = codeInfo?.lineNumber ? Number.parseInt(codeInfo.lineNumber, 10) : undefined;
+  const { importsOf } = buildImportIndex(edges);
 
-  if (pathFile) {
-    const match = findAuditRowByPath(pathFile, rows);
-    if (match) {
-      return {
-        file: match.file,
-        lineNumber: Number.isFinite(lineNumber) ? lineNumber : undefined,
-        componentName: match.component,
-        bucket: match.bucket,
-        source: 'path',
-      };
-    }
+  const chainRows = auditRowsFromFiberChain(element, rows, edges, options);
+  const picked = pickInspectRow(chainRows, importsOf, options);
+  if (picked) {
+    return {
+      file: picked.file,
+      lineNumber: Number.isFinite(lineNumber) ? lineNumber : undefined,
+      componentName: picked.component,
+      bucket: picked.bucket,
+      source: 'chain',
+    };
   }
 
   const inspect = getElementInspect(element);
   const componentName = inspect.name;
 
   if (componentName && !SKIP_FIBER_NAMES.has(componentName)) {
-    const { importsOf } = buildImportIndex(edges);
     const chain = fiberChainFromElement(element);
     const fiberIndex = chain.findIndex(
       (fiber) =>
@@ -242,10 +294,16 @@ export function resolveInspectTarget(
     );
     const parentFile =
       fiberIndex >= 0
-        ? parentFileFromChainIndex(chain, fiberIndex, rows, importsOf)
-        : parentFileFromChainIndex(chain, 0, rows, importsOf);
+        ? parentFileFromChainIndex(chain, fiberIndex, rows, importsOf, options?.mountedFiles)
+        : parentFileFromChainIndex(chain, 0, rows, importsOf, options?.mountedFiles);
 
-    const row = disambiguateComponentRow(componentName, rows, parentFile, importsOf);
+    const row = disambiguateComponentRow(
+      componentName,
+      rows,
+      parentFile,
+      importsOf,
+      options?.mountedFiles,
+    );
     if (row) {
       return {
         file: row.file,
@@ -257,7 +315,8 @@ export function resolveInspectTarget(
     }
   }
 
-  const nearest = resolveNearestAuditFile(element, rows, edges);
+  const pathFile = normalizeAuditPath(codeInfo?.relativePath ?? codeInfo?.absolutePath);
+  const nearest = resolveNearestAuditFile(element, rows, edges, options);
   if (nearest) {
     return {
       file: nearest.file,

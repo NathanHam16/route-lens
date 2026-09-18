@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-09-18
+
+### Changed
+
+- **Inspect toggle** in the panel header (plus `I` shortcut) — no longer buried in settings.
+- **Smell counts** labeled `ok / cross / audit` instead of bare numbers.
+- **Tree metadata** (lines, import counts) uses higher-contrast zinc-300 text.
+
+### Fixed
+
+- **Inspect resolution** respects tree focus: hovering inside a focused component prefers that file (or its container) over deeper leaf imports like `RubricProse` embedded in the card chrome.
+- Removed confusing auto-preview boxes for the first child import when a file is focused.
+
+## [0.2.2] - 2026-09-18
+
+### Fixed
+
+- **`resolveEntry`**: only accept `src/app/**/page.tsx` paths; reject `..` and arbitrary `.ts` files (closes path traversal via `?route=`).
+- **`createRouteLensHandler`**: generic 500 on audit failure so server paths are not leaked in responses.
+- **Default `okPrefixes`**: include `features/`; user `okPrefixes` merge with defaults instead of replacing them.
+- **Inspect mode**: skip clicks on buttons, links, and form controls so the overlay does not swallow page interaction.
+
+## [0.2.1] - 2026-09-17
+
+### Fixed
+
+- Ship bundled Tailwind CSS (`dist/react/styles.css`) so host apps that do not scan `node_modules` still get the dark panel theme and bucket colors.
+- Solid panel background and higher-contrast folder labels for readability.
+
 ## [0.1.0] - 2026-09-17
 
 ### Added

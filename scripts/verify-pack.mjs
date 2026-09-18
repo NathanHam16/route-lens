@@ -64,6 +64,12 @@ try {
   }
   console.log('verify-pack: dist/bin/cli.js exists');
 
+  const stylesPath = join(installedRoot, 'dist', 'react', 'styles.css');
+  if (!existsSync(stylesPath)) {
+    fail(`missing ${stylesPath}`);
+  }
+  console.log('verify-pack: dist/react/styles.css exists');
+
   const importSpecs = [
     '@nathanham16/route-lens',
     '@nathanham16/route-lens/react',

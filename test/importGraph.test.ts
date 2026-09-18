@@ -118,4 +118,12 @@ describe('disambiguateComponentRow', () => {
     const { importsOf } = buildImportIndex([]);
     expect(disambiguateComponentRow('Viewer', rows, null, importsOf)?.bucket).toBe('cross-route');
   });
+
+  it('prefers a mounted file when breaking name ties', () => {
+    const { importsOf } = buildImportIndex([]);
+    const mounted = new Set(['app/foo/Viewer.tsx']);
+    expect(
+      disambiguateComponentRow('Viewer', rows, null, importsOf, mounted)?.file,
+    ).toBe('app/foo/Viewer.tsx');
+  });
 });

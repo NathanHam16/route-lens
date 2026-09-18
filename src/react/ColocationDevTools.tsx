@@ -281,16 +281,12 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
   }, [data?.entry, edges, rows]);
 
   useEffect(() => {
-    if (hoveredTreeFile && hoveredTreeFile !== focusFile) {
+    if (hoveredTreeFile) {
       setHoverRects(mountRectsForFile(hoveredTreeFile, data?.entry));
       return;
     }
-    if (focusFile && navChild?.file && navChild.file !== focusFile) {
-      setHoverRects(mountRectsForFile(navChild.file, data?.entry));
-      return;
-    }
     setHoverRects([]);
-  }, [data?.entry, focusFile, hoveredTreeFile, navChild]);
+  }, [data?.entry, hoveredTreeFile]);
 
   const updateHoverFromElement = useCallback(
     (element: HTMLElement | null, x: number, y: number) => {
@@ -300,7 +296,10 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
         return;
       }
 
-      const target = resolveInspectTarget(element, rows, data?.routeRoot, edges);
+      const target = resolveInspectTarget(element, rows, data?.routeRoot, edges, {
+        focusFile,
+        mountedFiles,
+      });
 
       setHover({
         visible: true,
@@ -314,7 +313,7 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
 
       if (target.file) setSelectedFile(target.file);
     },
-    [data?.routeRoot, edges, rows],
+    [data?.routeRoot, edges, focusFile, mountedFiles, rows],
   );
 
   useEffect(() => {
@@ -374,6 +373,19 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
         setOpen((prev) => !prev);
         return;
       }
+      if (
+        open &&
+        !event.altKey &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        event.key.toLowerCase() === 'i' &&
+        !(event.target instanceof HTMLTextAreaElement) &&
+        !(event.target instanceof HTMLInputElement && event.target.type !== 'checkbox')
+      ) {
+        event.preventDefault();
+        setInspectMode((prev) => !prev);
+        return;
+      }
       if (!open || !focusFile) return;
       if (!(event.target instanceof HTMLElement)) return;
       if (!event.target.closest('[data-route-lens]')) return;
@@ -409,9 +421,19 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
     const onClick = (event: MouseEvent) => {
       const element = document.elementFromPoint(event.clientX, event.clientY);
       if (!(element instanceof HTMLElement) || element.closest('[data-route-lens]')) return;
+      if (
+        element.closest(
+          'button, a, input, textarea, select, [contenteditable="true"], [role="button"]',
+        )
+      ) {
+        return;
+      }
       event.preventDefault();
       event.stopPropagation();
-      const target = resolveInspectTarget(element, rows, data?.routeRoot, edges);
+      const target = resolveInspectTarget(element, rows, data?.routeRoot, edges, {
+        focusFile,
+        mountedFiles,
+      });
       if (target.file) {
         handleSelectFile(target.file);
       }
@@ -423,7 +445,16 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('click', onClick, true);
     };
-  }, [data?.routeRoot, edges, handleSelectFile, inspectMode, rows, updateHoverFromElement]);
+  }, [
+    data?.routeRoot,
+    edges,
+    focusFile,
+    handleSelectFile,
+    inspectMode,
+    mountedFiles,
+    rows,
+    updateHoverFromElement,
+  ]);
 
   useEffect(() => {
     if (!open) {
@@ -465,6 +496,8 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
       navParent={navParent}
       navChild={navChild}
       onZoomDelta={bumpZoom}
+      inspectMode={inspectMode}
+      onInspectToggle={() => setInspectMode((prev) => !prev)}
       onClose={() => setOpen(false)}
       ready={!loading && !error}
     />

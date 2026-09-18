@@ -176,7 +176,7 @@ export function SettingsPanel({
               <p className="pt-1 text-[10px] uppercase tracking-wide text-zinc-600">page</p>
               <SettingToggle
                 checked={inspectMode}
-                label="inspect mode"
+                label="inspect mode (also header · I)"
                 onChange={onInspectChange}
               />
             </div>

@@ -20,21 +20,49 @@ export type PageAuditResult = {
   all: AuditRow[];
 };
 
+function assertUnderAppRoot(appRoot: string, absPath: string): string {
+  const normalizedRoot = path.resolve(appRoot);
+  const normalized = path.resolve(absPath);
+  const rootWithSep = normalizedRoot.endsWith(path.sep)
+    ? normalizedRoot
+    : `${normalizedRoot}${path.sep}`;
+  if (normalized !== normalizedRoot && !normalized.startsWith(rootWithSep)) {
+    throw new Error('Entry must stay under src/app');
+  }
+  return normalized;
+}
+
 function resolveEntry(config: ReturnType<typeof resolveConfig>, entryArg: string): string {
   const { srcAbs } = config;
+  const appRoot = path.join(srcAbs, 'app');
+
+  if (entryArg.includes('..')) {
+    throw new Error('Invalid entry');
+  }
+
   if (entryArg.endsWith('.tsx') || entryArg.endsWith('.ts')) {
+    if (!entryArg.endsWith('page.tsx')) {
+      throw new Error('Entry must be an app/page.tsx file');
+    }
     const abs = path.isAbsolute(entryArg)
-      ? entryArg
+      ? path.resolve(entryArg)
       : path.resolve(srcAbs, entryArg.replace(/^src\//, ''));
-    if (!fs.existsSync(abs)) throw new Error(`Entry not found: ${abs}`);
-    return abs;
+    if (!fs.existsSync(abs)) {
+      throw new Error('Page entry not found');
+    }
+    return assertUnderAppRoot(appRoot, abs);
   }
+
+  if (path.isAbsolute(entryArg)) {
+    throw new Error('Invalid route');
+  }
+
   const route = entryArg.replace(/^\/+|\/+$/g, '');
-  const candidate = path.join(srcAbs, 'app', route, 'page.tsx');
+  const candidate = path.join(appRoot, route, 'page.tsx');
   if (!fs.existsSync(candidate)) {
-    throw new Error(`No page.tsx at app/${route}/page.tsx`);
+    throw new Error('Page entry not found');
   }
-  return candidate;
+  return assertUnderAppRoot(appRoot, candidate);
 }
 
 function relSrc(config: ReturnType<typeof resolveConfig>, abs: string): string {

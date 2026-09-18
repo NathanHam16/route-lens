@@ -134,8 +134,9 @@ export function disambiguateComponentRow(
   rows: AuditRow[],
   parentFile: string | null,
   importsOf: Map<string, Set<string>>,
+  mountedFiles?: Set<string>,
 ): AuditRow | null {
-  const matches = rowsForComponentName(componentName, rows);
+  let matches = rowsForComponentName(componentName, rows);
   if (matches.length === 0) return null;
   if (matches.length === 1) return matches[0]!;
 
@@ -144,10 +145,14 @@ export function disambiguateComponentRow(
     if (parentImports) {
       const imported = matches.filter((row) => parentImports.has(row.file));
       if (imported.length === 1) return imported[0]!;
-      if (imported.length > 1) {
-        return [...imported].sort((a, b) => bucketRank(b.bucket) - bucketRank(a.bucket))[0]!;
-      }
+      if (imported.length > 1) matches = imported;
     }
+  }
+
+  if (mountedFiles && mountedFiles.size > 0) {
+    const mounted = matches.filter((row) => mountedFiles.has(row.file));
+    if (mounted.length === 1) return mounted[0]!;
+    if (mounted.length > 1) matches = mounted;
   }
 
   return [...matches].sort((a, b) => bucketRank(b.bucket) - bucketRank(a.bucket))[0]!;
