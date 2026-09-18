@@ -13,9 +13,164 @@ Not affiliated with Vercel or the Next.js project.
 
 ## Install
 
+### npm
+
 ```bash
 npm install -D @nathanham16/route-lens
 ```
+
+Requires **Node.js ≥ 22**, **Next.js App Router**, and **React ≥ 18**. Install as a **dev dependency** only.
+
+### Send this to your coding agent
+
+Copy the block below into Cursor, Claude Code, Codex, or any repo agent. It installs Route Lens, wires the API route and overlay, handles common auth/middleware gotchas, and tells you how to use it when done.
+
+<details>
+<summary><strong>Agent install prompt</strong> (click to expand)</summary>
+
+```text
+Install and wire @nathanham16/route-lens (Route Lens) into this Next.js App Router project.
+
+Route Lens is dev-only colocation tooling: a browser overlay that shows what the current page imports, colored by coupling smell (green = colocated, red = cross-route, orange = shared-feature).
+
+Package docs: https://github.com/NathanHam16/route-lens
+
+Requirements: Node.js >= 22, Next.js App Router (app/ directory), React >= 18.
+
+---
+
+## Your job
+
+1. Install the package
+2. Add the dev API route
+3. Mount the overlay widget (dev only, no prod CSS leak)
+4. Fix middleware/auth if the API route would 401 in dev
+5. Verify with typecheck + CLI smoke test
+6. Reply to the user with a short “how to use it” guide (see template at bottom)
+
+Do not commit unless the user asks.
+
+---
+
+## 1. Install
+
+From the Next.js app root (the directory with next.config and package.json):
+
+  npm install -D @nathanham16/route-lens
+
+Add to next.config (merge with existing config):
+
+  transpilePackages: ['@nathanham16/route-lens'],
+
+---
+
+## 2. API route
+
+Create app/api/dev/route-lens/route.ts (or src/app/api/dev/route-lens/route.ts — match this repo’s app directory):
+
+  import { notFound } from 'next/navigation';
+  import { createRouteLensHandler } from '@nathanham16/route-lens/next';
+
+  const handler = createRouteLensHandler({
+    // Optional — inspect the codebase and set if needed:
+    // okPrefixes: ['components/ui/', 'lib/', 'features/'],
+    // productSibling: true,  // use if app/foo/[id] + app/foo/_product/ exists
+  });
+
+  export async function GET(req: Request): Promise<Response> {
+    if (process.env.NODE_ENV !== 'development') notFound();
+    return handler(req);
+  }
+
+The handler accepts ?route=submissions/[id] or ?pathname=/submissions/abc.
+
+---
+
+## 3. Widget (dev only, dynamic import)
+
+Do NOT top-level import RouteLens or its CSS in providers — that can leak CSS into production bundles.
+
+Create a thin dev wrapper (adjust path to match repo conventions), e.g. src/dev/RouteLensDev.tsx:
+
+  'use client';
+  import '@nathanham16/route-lens/react/styles.css';
+  export { RouteLens as default } from '@nathanham16/route-lens/react';
+
+In the root client Providers (or equivalent), dynamic-import it:
+
+  import dynamic from 'next/dynamic';
+
+  const RouteLens =
+    process.env.NODE_ENV === 'development'
+      ? dynamic(() => import('@/dev/RouteLensDev'), { ssr: false })
+      : () => null;
+
+  // inside JSX:
+  {process.env.NODE_ENV === 'development' && <RouteLens />}
+
+If the API route is not at /api/dev/route-lens, pass apiPath on RouteLens.
+
+---
+
+## 4. Middleware / auth bypass
+
+Search for middleware.ts, proxy.ts, or session/auth wrappers that run on /api/*.
+
+If unauthenticated dev requests to /api/dev/route-lens would get 401 or redirect to login, add a development-only bypass for exactly that pathname — same pattern as any existing /fastapi/ or static bypasses in this repo.
+
+Example (adapt to this project’s middleware API):
+
+  if (
+    process.env.NODE_ENV === 'development' &&
+    request.nextUrl.pathname === '/api/dev/route-lens'
+  ) {
+    return NextResponse.next();
+  }
+
+---
+
+## 5. Verify
+
+- Run the project typecheck (e.g. npx tsc --noEmit -p tsconfig.json)
+- CLI smoke test from the app root:
+    npm exec --no -- route-lens <an-existing-route>
+  Example: route-lens blog or route-lens submissions/[id]
+- Do not start a long-running dev server unless the user asks
+
+---
+
+## 6. Tell the user (required final message)
+
+When done, reply with:
+
+**What I changed** — list files touched.
+
+**How to open Route Lens**
+1. Run the dev server (npm run dev or this repo’s equivalent)
+2. Open any App Router page in the browser
+3. Click the folder-tree widget (bottom-left) or press Alt+Shift+C
+
+**What the colors mean**
+- Green — colocated under this route (or _product/ sibling if configured)
+- Red — cross-route: another app/ route tree imported here
+- Orange — shared-feature: components/ with unclear single owner
+
+**Useful shortcuts**
+- Alt+Shift+C — toggle panel
+- I — toggle inspect mode (hover page elements to see source file)
+- ↑/↓ — jump parent/child in import graph
+- Settings presets: default · audit (smells only) · navigate · debug
+
+**CLI (no browser)**
+  npm exec --no -- route-lens <route> --suspects-only
+
+**Docs with screenshots**
+  https://github.com/NathanHam16/route-lens#visual-tour
+```
+
+</details>
+
+Prefer step-by-step control? Follow [Quick start](#quick-start) below.
 
 ## Quick start
 
