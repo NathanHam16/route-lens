@@ -1,0 +1,23 @@
+examples/colocation-demo/package.json
+  s_fc40294cb10ac8::t_ac353cccef63ea 14
+examples/colocation-demo/README-colocation-devtools.md
+  s_fc40294cb10ac8::t_f08ff0cfac773a 46-52
+README.md
+  s_fc40294cb10ac8::t_d7991fb11acfaa 88-93
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "3152517dfe05e4b61c517f3d441453bd8e5ef373",
+  "prompts": {},
+  "sessions": {
+    "s_fc40294cb10ac8": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4a70eb77-7e86-4e87-b843-c75e7dbf6ddd",
+        "model": "composer-2.5"
+      },
+      "human_author": "Nathan Wang <nathan123wang@gmail.com>"
+    }
+  }
+}
