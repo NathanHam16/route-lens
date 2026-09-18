@@ -111,6 +111,41 @@ export function importSubtree(root: string, importsOf: Map<string, Set<string>>)
   return result;
 }
 
+/** Like `importSubtree`, but only up to `maxDepth` import hops from `root` (0 = root only). */
+export function importSubtreeWithinDepth(
+  root: string,
+  importsOf: Map<string, Set<string>>,
+  maxDepth: number,
+): Set<string> {
+  const result = new Set<string>([root]);
+  if (maxDepth <= 0) return result;
+
+  let frontier = [root];
+  for (let depth = 0; depth < maxDepth; depth++) {
+    const next: string[] = [];
+    for (const current of frontier) {
+      for (const child of importsOf.get(current) ?? []) {
+        if (!result.has(child)) {
+          result.add(child);
+          next.push(child);
+        }
+      }
+    }
+    frontier = next;
+  }
+
+  return result;
+}
+
+/** Scope for focus isolation: direct imports by default, optional full transitive closure. */
+export function focusImportScope(
+  root: string,
+  importsOf: Map<string, Set<string>>,
+  transitive: boolean,
+): Set<string> {
+  return transitive ? importSubtree(root, importsOf) : importSubtreeWithinDepth(root, importsOf, 1);
+}
+
 function bucketRank(bucket: AuditRow['bucket']): number {
   switch (bucket) {
     case 'cross-route':
@@ -134,8 +169,9 @@ export function disambiguateComponentRow(
   rows: AuditRow[],
   parentFile: string | null,
   importsOf: Map<string, Set<string>>,
+  mountedFiles?: Set<string>,
 ): AuditRow | null {
-  const matches = rowsForComponentName(componentName, rows);
+  let matches = rowsForComponentName(componentName, rows);
   if (matches.length === 0) return null;
   if (matches.length === 1) return matches[0]!;
 
@@ -144,10 +180,14 @@ export function disambiguateComponentRow(
     if (parentImports) {
       const imported = matches.filter((row) => parentImports.has(row.file));
       if (imported.length === 1) return imported[0]!;
-      if (imported.length > 1) {
-        return [...imported].sort((a, b) => bucketRank(b.bucket) - bucketRank(a.bucket))[0]!;
-      }
+      if (imported.length > 1) matches = imported;
     }
+  }
+
+  if (mountedFiles && mountedFiles.size > 0) {
+    const mounted = matches.filter((row) => mountedFiles.has(row.file));
+    if (mounted.length === 1) return mounted[0]!;
+    if (mounted.length > 1) matches = mounted;
   }
 
   return [...matches].sort((a, b) => bucketRank(b.bucket) - bucketRank(a.bucket))[0]!;

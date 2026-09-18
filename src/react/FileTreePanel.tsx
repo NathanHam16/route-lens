@@ -36,11 +36,11 @@ export function bucketTextColor(bucket: AuditBucket): string {
 
 function folderTextColor(node: FileTreeNode): string {
   const bucket = dominantBucket(node);
-  if (!bucket) return 'text-zinc-500';
-  if (bucket === 'cross-route') return 'text-red-400/80';
-  if (bucket === 'shared-feature' || bucket === 'other') return 'text-orange-400/80';
-  if (bucket === 'colocated' || bucket === 'product') return 'text-green-400/70';
-  return 'text-zinc-500';
+  if (!bucket) return 'text-zinc-400';
+  if (bucket === 'cross-route') return 'text-red-400';
+  if (bucket === 'shared-feature' || bucket === 'other') return 'text-orange-300';
+  if (bucket === 'colocated' || bucket === 'product') return 'text-green-400';
+  return 'text-zinc-400';
 }
 
 function graphTooltip(
@@ -93,9 +93,9 @@ function RowBadges({
   if (!showAny) return null;
 
   return (
-    <span className="ml-auto flex shrink-0 items-center gap-1 tabular-nums text-[10px] text-zinc-600">
+    <span className="ml-auto flex shrink-0 items-center gap-1.5 tabular-nums text-[10px] font-medium text-zinc-300">
       {settings.showNoDomTag && row.file.endsWith('.tsx') && !mounted ? (
-        <span className="text-zinc-700">0dom</span>
+        <span className="text-amber-400/90">0dom</span>
       ) : null}
       {settings.showGraphDepth && graphDepth != null ? <span>d{graphDepth}</span> : null}
       {settings.showLineCount && row.lineCount != null ? <span>{row.lineCount}L</span> : null}
@@ -384,7 +384,7 @@ export function FileTreePanel({
   return (
     <div
       ref={scrollRef}
-      className="min-h-0 flex-1 overflow-y-auto py-px leading-tight"
+      className="min-h-0 flex-1 overflow-y-auto bg-zinc-950 py-px leading-snug"
       style={tailPadPx > 0 ? { paddingBottom: tailPadPx } : undefined}
       onMouseLeave={() => handleHover(null)}
     >

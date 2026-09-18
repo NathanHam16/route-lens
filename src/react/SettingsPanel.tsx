@@ -149,7 +149,17 @@ export function SettingsPanel({
             <div className="space-y-0.5">
               <p className="text-[10px] uppercase tracking-wide text-zinc-600">filter</p>
               {filterLocked ? (
-                <p className="py-0.5 text-[10px] text-zinc-600">focus shows full downstream tree</p>
+                <>
+                  <SettingToggle
+                    checked={settings.focusTransitive}
+                    label="depth: all imports ↓ (transitive)"
+                    onChange={(value) => onChange({ focusTransitive: value })}
+                  />
+                  <p className="py-0.5 text-[10px] leading-snug text-zinc-600">
+                    Off = direct imports only. On = follow the whole chain (e.g. paper → bank →
+                    rubric).
+                  </p>
+                </>
               ) : null}
               <SettingToggle
                 checked={settings.smellsOnly}
@@ -176,7 +186,7 @@ export function SettingsPanel({
               <p className="pt-1 text-[10px] uppercase tracking-wide text-zinc-600">page</p>
               <SettingToggle
                 checked={inspectMode}
-                label="inspect mode"
+                label="inspect mode (also header · I)"
                 onChange={onInspectChange}
               />
             </div>

@@ -20,7 +20,7 @@ import {
   buildImportIndex,
   graphChildren,
   graphParents,
-  importSubtree,
+  focusImportScope,
   pickGraphNeighbor,
 } from '../core/importGraph.js';
 import { buildGraphDepthIndex } from '../core/auditMetrics.js';
@@ -70,18 +70,6 @@ function flattenRows(data: PageAuditResult | null): AuditRow[] {
     .sort((a, b) => a.file.localeCompare(b.file));
 }
 
-const HIGHLIGHT_CLASS = 'colocation-inspect-highlight';
-
-const BUCKET_OUTLINE: Record<AuditBucket, string> = {
-  colocated: 'outline-green-500/80',
-  product: 'outline-green-500/60',
-  shared: 'outline-zinc-400/40',
-  'shared-feature': 'outline-orange-400/80',
-  'cross-route': 'outline-red-500/90',
-  other: 'outline-orange-400/70',
-  logic: 'outline-zinc-500/40',
-};
-
 export type RouteLensProps = {
   apiPath?: string;
 };
@@ -105,11 +93,12 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
   const [fontPx, setFontPx] = useState(() => loadPanelZoom());
   const [hover, setHover] = useState<HoverState>(INITIAL_HOVER);
   const [hoveredTreeFile, setHoveredTreeFile] = useState<string | null>(null);
-  const [highlightedEl, setHighlightedEl] = useState<HTMLElement | null>(null);
   const [pageMatchCount, setPageMatchCount] = useState<number | null>(null);
   const [pageMatchViaShell, setPageMatchViaShell] = useState(false);
   const pageHighlightsRef = useRef<HTMLElement[]>([]);
   const panelFocusRef = useRef<HTMLDivElement>(null);
+  const inspectRafRef = useRef<number | null>(null);
+  const lastInspectKeyRef = useRef<string | null>(null);
   const [hoverRects, setHoverRects] = useState<PageMountRect[]>([]);
 
   const focusPanel = useCallback(() => {
@@ -156,13 +145,16 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
 
   const focusFiles = useMemo(() => {
     if (!focusFile) return null;
-    return importSubtree(focusFile, importsOf);
-  }, [focusFile, importsOf]);
+    return focusImportScope(focusFile, importsOf, settings.focusTransitive);
+  }, [focusFile, importsOf, settings.focusTransitive]);
 
   const displayRows = useMemo(() => {
     if (!focusFiles) return rows;
     return rows.filter((row) => focusFiles.has(row.file));
   }, [focusFiles, rows]);
+
+  /** When focused, inspect/name resolution only considers the isolated subtree. */
+  const inspectRows = focusFile ? displayRows : rows;
 
   const graphDepths = useMemo(
     () => buildGraphDepthIndex(data?.entry, edges),
@@ -235,10 +227,17 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
   }, [handleSelectFile, importedBy, navFile, parentStep]);
 
   const goDown = useCallback(() => {
-    if (!navFile) return;
+    if (!navFile || !focusFile) return;
     const step = pickGraphNeighbor(graphChildren(navFile, importsOf), childStep);
-    if (step.file) handleSelectFile(step.file, false);
-  }, [childStep, handleSelectFile, importsOf, navFile]);
+    if (!step.file) return;
+    if (
+      !settings.focusTransitive &&
+      !focusImportScope(focusFile, importsOf, false).has(step.file)
+    ) {
+      return;
+    }
+    handleSelectFile(step.file, false);
+  }, [childStep, focusFile, handleSelectFile, importsOf, navFile, settings.focusTransitive]);
 
   const cycleParent = useCallback(
     (delta: -1 | 1) => {
@@ -281,26 +280,30 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
   }, [data?.entry, edges, rows]);
 
   useEffect(() => {
-    if (hoveredTreeFile && hoveredTreeFile !== focusFile) {
+    if (hoveredTreeFile) {
       setHoverRects(mountRectsForFile(hoveredTreeFile, data?.entry));
       return;
     }
-    if (focusFile && navChild?.file && navChild.file !== focusFile) {
-      setHoverRects(mountRectsForFile(navChild.file, data?.entry));
-      return;
-    }
     setHoverRects([]);
-  }, [data?.entry, focusFile, hoveredTreeFile, navChild]);
+  }, [data?.entry, hoveredTreeFile]);
 
   const updateHoverFromElement = useCallback(
     (element: HTMLElement | null, x: number, y: number) => {
       if (!element || element.closest('[data-route-lens]')) {
         setHover((prev) => (prev.visible ? INITIAL_HOVER : prev));
-        setHighlightedEl(null);
         return;
       }
 
-      const target = resolveInspectTarget(element, rows, data?.routeRoot, edges);
+      const target = resolveInspectTarget(element, inspectRows, data?.routeRoot, edges, {
+        focusFile,
+        focusTransitive: settings.focusTransitive,
+        mountedFiles,
+        importsOf,
+      });
+
+      const inspectKey = `${target.file ?? ''}|${target.componentName ?? ''}`;
+      if (inspectKey === lastInspectKeyRef.current) return;
+      lastInspectKeyRef.current = inspectKey;
 
       setHover({
         visible: true,
@@ -310,30 +313,9 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
         componentName: target.componentName,
         bucket: target.bucket,
       });
-      setHighlightedEl(element);
-
-      if (target.file) setSelectedFile(target.file);
     },
-    [data?.routeRoot, edges, rows],
+    [data?.routeRoot, edges, focusFile, importsOf, inspectRows, mountedFiles, settings.focusTransitive],
   );
-
-  useEffect(() => {
-    if (!inspectMode || !highlightedEl) return;
-
-    highlightedEl.classList.add(HIGHLIGHT_CLASS, 'outline', 'outline-2', '-outline-offset-2');
-    const bucket = hover.bucket;
-    if (bucket) highlightedEl.classList.add(BUCKET_OUTLINE[bucket]);
-
-    return () => {
-      highlightedEl.classList.remove(
-        HIGHLIGHT_CLASS,
-        'outline',
-        'outline-2',
-        '-outline-offset-2',
-        ...Object.values(BUCKET_OUTLINE),
-      );
-    };
-  }, [highlightedEl, hover.bucket, inspectMode]);
 
   const runGraphKey = useCallback(
     (event: { key: string; shiftKey: boolean; preventDefault: () => void; stopPropagation: () => void }) => {
@@ -374,6 +356,19 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
         setOpen((prev) => !prev);
         return;
       }
+      if (
+        open &&
+        !event.altKey &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        event.key.toLowerCase() === 'i' &&
+        !(event.target instanceof HTMLTextAreaElement) &&
+        !(event.target instanceof HTMLInputElement && event.target.type !== 'checkbox')
+      ) {
+        event.preventDefault();
+        setInspectMode((prev) => !prev);
+        return;
+      }
       if (!open || !focusFile) return;
       if (!(event.target instanceof HTMLElement)) return;
       if (!event.target.closest('[data-route-lens]')) return;
@@ -397,21 +392,37 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
   useEffect(() => {
     if (!inspectMode) {
       setHover(INITIAL_HOVER);
-      setHighlightedEl(null);
       return;
     }
 
     const onMouseMove = (event: MouseEvent) => {
-      const element = document.elementFromPoint(event.clientX, event.clientY);
-      updateHoverFromElement(element instanceof HTMLElement ? element : null, event.clientX, event.clientY);
+      if (inspectRafRef.current != null) return;
+      const { clientX, clientY } = event;
+      inspectRafRef.current = requestAnimationFrame(() => {
+        inspectRafRef.current = null;
+        const element = document.elementFromPoint(clientX, clientY);
+        updateHoverFromElement(element instanceof HTMLElement ? element : null, clientX, clientY);
+      });
     };
 
     const onClick = (event: MouseEvent) => {
       const element = document.elementFromPoint(event.clientX, event.clientY);
       if (!(element instanceof HTMLElement) || element.closest('[data-route-lens]')) return;
+      if (
+        element.closest(
+          'button, a, input, textarea, select, [contenteditable="true"], [role="button"]',
+        )
+      ) {
+        return;
+      }
       event.preventDefault();
       event.stopPropagation();
-      const target = resolveInspectTarget(element, rows, data?.routeRoot, edges);
+      const target = resolveInspectTarget(element, inspectRows, data?.routeRoot, edges, {
+        focusFile,
+        focusTransitive: settings.focusTransitive,
+        mountedFiles,
+        importsOf,
+      });
       if (target.file) {
         handleSelectFile(target.file);
       }
@@ -420,16 +431,31 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
     document.addEventListener('mousemove', onMouseMove, { passive: true });
     document.addEventListener('click', onClick, true);
     return () => {
+      if (inspectRafRef.current != null) {
+        cancelAnimationFrame(inspectRafRef.current);
+        inspectRafRef.current = null;
+      }
+      lastInspectKeyRef.current = null;
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('click', onClick, true);
     };
-  }, [data?.routeRoot, edges, handleSelectFile, inspectMode, rows, updateHoverFromElement]);
+  }, [
+    data?.routeRoot,
+    edges,
+    focusFile,
+    handleSelectFile,
+    importsOf,
+    inspectMode,
+    inspectRows,
+    mountedFiles,
+    settings.focusTransitive,
+    updateHoverFromElement,
+  ]);
 
   useEffect(() => {
     if (!open) {
       setInspectMode(false);
       setHover(INITIAL_HOVER);
-      setHighlightedEl(null);
       clearPageHighlights();
     }
   }, [clearPageHighlights, open]);
@@ -452,6 +478,8 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
       entryFile={data?.entry}
       counts={counts}
       countsAreDownstream={Boolean(focusFile)}
+      focusTransitive={settings.focusTransitive}
+      onFocusTransitiveChange={(value) => updateSettings({ focusTransitive: value })}
       fontPx={fontPx}
       pageMatchCount={pageMatchCount}
       pageMatchViaShell={pageMatchViaShell}
@@ -465,6 +493,8 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
       navParent={navParent}
       navChild={navChild}
       onZoomDelta={bumpZoom}
+      inspectMode={inspectMode}
+      onInspectToggle={() => setInspectMode((prev) => !prev)}
       onClose={() => setOpen(false)}
       ready={!loading && !error}
     />

@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.6] - 2026-09-18
+
+### Changed
+
+- **UX:** `size − 12px +` replaces cryptic `− 18 +`. Focus depth toggle reads **depth: direct** vs **depth: all ↓** with plain-language tooltips.
+- **Inspect performance:** rAF-throttled hover, cached import index, skip duplicate targets, removed per-hover DOM outline churn (badge only).
+
+## [0.2.5] - 2026-09-18
+
+### Changed
+
+- **Focus defaults to direct imports only** — isolating `PaperStackedCards` no longer pulls in transitive chains (e.g. rubric UI reached via `PromptRenderer` → question bank). Toggle **transitive** in the focus bar or settings to see the full downstream closure.
+
+## [0.2.4] - 2026-09-18
+
+### Fixed
+
+- **Focus isolation is strict:** with a file focused, inspect hover/click only resolves components in that file’s import subtree. Hovering elsewhere shows an amber **outside focus** badge instead of unrelated files like sidebar `RubricProse`.
+- Inspect name resolution uses the filtered tree rows while focused.
+
+## [0.2.3] - 2026-09-18
+
+### Changed
+
+- **Inspect toggle** in the panel header (plus `I` shortcut) — no longer buried in settings.
+- **Smell counts** labeled `ok / cross / audit` instead of bare numbers.
+- **Tree metadata** (lines, import counts) uses higher-contrast zinc-300 text.
+
+### Fixed
+
+- **Inspect resolution** respects tree focus: hovering inside a focused component prefers that file (or its container) over deeper leaf imports like `RubricProse` embedded in the card chrome.
+- Removed confusing auto-preview boxes for the first child import when a file is focused.
+
+## [0.2.2] - 2026-09-18
+
+### Fixed
+
+- **`resolveEntry`**: only accept `src/app/**/page.tsx` paths; reject `..` and arbitrary `.ts` files (closes path traversal via `?route=`).
+- **`createRouteLensHandler`**: generic 500 on audit failure so server paths are not leaked in responses.
+- **Default `okPrefixes`**: include `features/`; user `okPrefixes` merge with defaults instead of replacing them.
+- **Inspect mode**: skip clicks on buttons, links, and form controls so the overlay does not swallow page interaction.
+
+## [0.2.1] - 2026-09-17
+
+### Fixed
+
+- Ship bundled Tailwind CSS (`dist/react/styles.css`) so host apps that do not scan `node_modules` still get the dark panel theme and bucket colors.
+- Solid panel background and higher-contrast folder labels for readability.
+
 ## [0.1.0] - 2026-09-17
 
 ### Added

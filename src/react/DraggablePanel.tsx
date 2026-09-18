@@ -172,7 +172,7 @@ export function DraggablePanel({
   return (
     <div
       data-route-lens
-      className={`fixed flex flex-col overflow-hidden rounded-lg border border-white/15 bg-zinc-950/95 font-mono text-zinc-100 shadow-2xl ring-1 ring-white/10 backdrop-blur-md ${
+      className={`fixed flex flex-col overflow-hidden rounded-lg border border-white/15 bg-zinc-950 font-mono text-zinc-100 shadow-2xl ring-1 ring-white/10 ${
         dragging || resizing ? 'select-none touch-none' : ''
       }`}
       style={{

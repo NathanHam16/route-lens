@@ -1,5 +1,7 @@
 'use client';
 
+import './styles.css';
+
 export {
   default as RouteLens,
   ColocationDevTools,

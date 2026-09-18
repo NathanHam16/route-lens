@@ -1,6 +1,6 @@
 {
   "name": "@nathanham16/route-lens",
-  "version": "0.2.0",
+  "version": "0.2.6",
   "description": "Dev-only overlay: page-scoped import tree with colocation smells (green / red / orange) for Next.js App Router.",
   "homepage": "https://github.com/NathanHam16/route-lens#readme",
   "bugs": {
@@ -34,6 +34,7 @@
       "types": "./dist/react/index.d.ts",
       "import": "./dist/react/index.js"
     },
+    "./react/styles.css": "./dist/react/styles.css",
     "./next": {
       "types": "./dist/next/index.d.ts",
       "import": "./dist/next/index.js"
@@ -42,8 +43,12 @@
   "files": [
     "dist"
   ],
+  "sideEffects": [
+    "**/*.css"
+  ],
   "scripts": {
-    "build": "tsup && chmod +x dist/bin/cli.js",
+    "build": "tsup && npm run build:css && chmod +x dist/bin/cli.js",
+    "build:css": "tailwindcss -i ./src/react/styles.css -o ./dist/react/styles.css --minify",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
@@ -66,12 +71,14 @@
     "react-dev-inspector": "^2.0.1"
   },
   "devDependencies": {
+    "@tailwindcss/cli": "^4.1.11",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "next": "^16.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "tailwindcss": "^4.1.11",
     "tsup": "^8.4.0",
     "typescript": "^5.8.0",
     "vitest": "^3.2.4"

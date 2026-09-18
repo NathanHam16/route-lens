@@ -40,17 +40,28 @@ export function InspectBadge({
 }: InspectBadgeProps) {
   if (!visible) return null;
 
-  const name = componentName ?? file?.split('/').pop() ?? '?';
+  const outsideFocus = !file && componentName === 'outside focus';
+  const name = outsideFocus ? 'outside focus' : (componentName ?? file?.split('/').pop() ?? '?');
 
   return (
     <div
-      className="pointer-events-none fixed z-[10050] max-w-[220px] truncate rounded border border-white/10 bg-black/85 px-1.5 py-px font-mono text-zinc-200"
+      className={`pointer-events-none fixed z-[10050] max-w-[240px] truncate rounded border px-1.5 py-px font-mono ${
+        outsideFocus
+          ? 'border-amber-500/40 bg-amber-950/90 text-amber-200'
+          : 'border-white/10 bg-black/85 text-zinc-200'
+      }`}
       style={{ left: x, top: y, fontSize: fontSizePx, zIndex: COLOCATION_WIDGET_Z + 1 }}
-      title={file ?? undefined}
+      title={outsideFocus ? 'Hover is outside the focused import subtree' : (file ?? undefined)}
     >
-      <span className={labelColor(bucket)}>{shortLabel(bucket)}</span>
-      <span className="text-zinc-600"> · </span>
-      {name}
+      {outsideFocus ? (
+        name
+      ) : (
+        <>
+          <span className={labelColor(bucket)}>{shortLabel(bucket)}</span>
+          <span className="text-zinc-600"> · </span>
+          {name}
+        </>
+      )}
     </div>
   );
 }
