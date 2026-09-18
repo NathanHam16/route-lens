@@ -150,21 +150,25 @@ export function ColocationPanelHeader({
         <span className="min-w-0 flex-1 truncate text-zinc-500" title={routeLabel}>
           {routeLabel}
         </span>
-        <span className="flex shrink-0 items-center tabular-nums text-zinc-500">
+        <span
+          className="flex shrink-0 items-center gap-0.5 rounded px-1 py-0.5 tabular-nums ring-1 ring-white/10 text-zinc-400"
+          title="Panel text size"
+        >
+          <span className="pr-0.5 text-[9px] uppercase tracking-wide text-zinc-600">size</span>
           <button
             type="button"
             onClick={() => onZoomDelta(-1)}
-            className="px-0.5 hover:text-zinc-300"
-            aria-label="Smaller text"
+            className="px-0.5 hover:text-zinc-200"
+            aria-label="Decrease panel text size"
           >
             −
           </button>
-          <span className="min-w-[1.25rem] text-center">{fontPx}</span>
+          <span className="min-w-[2rem] text-center text-zinc-300">{fontPx}px</span>
           <button
             type="button"
             onClick={() => onZoomDelta(1)}
-            className="px-0.5 hover:text-zinc-300"
-            aria-label="Larger text"
+            className="px-0.5 hover:text-zinc-200"
+            aria-label="Increase panel text size"
           >
             +
           </button>
@@ -268,30 +272,34 @@ export function ColocationPanelHeader({
           </div>
 
           <div className="flex items-center justify-between gap-2 text-[10px] text-zinc-500">
-            <span className="min-w-0 truncate">
+            <span className="min-w-0 truncate" title="What the tree and inspect hover include">
               {matchLabel ||
                 (focusTransitive
-                  ? 'tree + inspect · all downstream imports'
-                  : 'tree + inspect · direct imports only')}
+                  ? 'showing every file this imports, recursively'
+                  : 'showing only files this file imports directly')}
             </span>
             <button
               type="button"
               onClick={() => onFocusTransitiveChange(!focusTransitive)}
               aria-pressed={focusTransitive}
-              title="Direct imports only vs full transitive downstream"
-              className={`shrink-0 rounded px-1 py-0.5 tabular-nums ${
+              title={
+                focusTransitive
+                  ? 'Switch to direct: only immediate imports (e.g. PromptRenderer, not rubric-via-bank)'
+                  : 'Switch to transitive: follow imports all the way down (includes distant chains like rubric UI)'
+              }
+              className={`shrink-0 rounded px-1 py-0.5 text-[10px] ${
                 focusTransitive
                   ? 'bg-orange-950/60 text-orange-200 ring-1 ring-orange-500/40'
-                  : 'bg-zinc-900/80 text-zinc-400 ring-1 ring-white/10 hover:text-zinc-200'
+                  : 'bg-zinc-900/80 text-zinc-300 ring-1 ring-white/10 hover:text-zinc-100'
               }`}
             >
-              {focusTransitive ? 'transitive' : 'direct'}
+              {focusTransitive ? 'depth: all ↓' : 'depth: direct'}
             </button>
           </div>
         </div>
       ) : ready ? (
         <div className="px-1.5 py-0.5 text-zinc-500">
-          click file to focus · Inspect to hover page · I toggles inspect
+          click a file to focus · Inspect hovers the page · I toggles inspect
         </div>
       ) : null}
 
@@ -300,9 +308,9 @@ export function ColocationPanelHeader({
           <span className="text-zinc-500">
             {countsAreDownstream
               ? focusTransitive
-                ? 'smells · transitive'
-                : 'smells · direct'
-              : 'smells · this page'}
+                ? 'smells in full import chain'
+                : 'smells in direct imports'
+              : 'smells on this page'}
           </span>
           <span className="flex shrink-0 items-center gap-x-2 text-[10px]">
             <span className="text-green-400" title="Green — colocated or product">

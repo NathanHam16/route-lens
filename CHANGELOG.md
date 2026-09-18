@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.6] - 2026-09-18
+
+### Changed
+
+- **UX:** `size − 12px +` replaces cryptic `− 18 +`. Focus depth toggle reads **depth: direct** vs **depth: all ↓** with plain-language tooltips.
+- **Inspect performance:** rAF-throttled hover, cached import index, skip duplicate targets, removed per-hover DOM outline churn (badge only).
+
 ## [0.2.5] - 2026-09-18
 
 ### Changed

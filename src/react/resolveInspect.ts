@@ -41,7 +41,16 @@ export type ResolveInspectOptions = {
   focusTransitive?: boolean;
   /** Files with a live DOM mount on the page — used to break name ties. */
   mountedFiles?: Set<string>;
+  /** Pre-built import index — avoids rebuilding on every hover. */
+  importsOf?: Map<string, Set<string>>;
 };
+
+function resolveImportsOf(
+  edges: ImportEdge[],
+  options?: ResolveInspectOptions,
+): Map<string, Set<string>> {
+  return options?.importsOf ?? buildImportIndex(edges).importsOf;
+}
 
 /** Normalize dev-server paths to src-relative audit paths (`app/...`). */
 export function normalizeAuditPath(rawPath: string | undefined): string | null {
@@ -148,7 +157,7 @@ export function auditRowsFromFiberChain(
   const chain = fiberChainFromElement(element);
   if (chain.length === 0) return [];
 
-  const { importsOf } = buildImportIndex(edges);
+  const importsOf = resolveImportsOf(edges, options);
   const seen = new Set<string>();
   const chainRows: AuditRow[] = [];
 
@@ -284,16 +293,13 @@ export function resolveInspectTarget(
   edges: ImportEdge[],
   options?: ResolveInspectOptions,
 ): InspectTarget {
-  const codeInfo = getElementCodeInfo(element);
-  const lineNumber = codeInfo?.lineNumber ? Number.parseInt(codeInfo.lineNumber, 10) : undefined;
-  const { importsOf } = buildImportIndex(edges);
+  const importsOf = resolveImportsOf(edges, options);
 
   const chainRows = auditRowsFromFiberChain(element, rows, edges, options);
   const picked = pickInspectRow(chainRows, importsOf, options);
   if (picked) {
     return {
       file: picked.file,
-      lineNumber: Number.isFinite(lineNumber) ? lineNumber : undefined,
       componentName: picked.component,
       bucket: picked.bucket,
       source: 'chain',
@@ -333,7 +339,6 @@ export function resolveInspectTarget(
     if (row) {
       return {
         file: row.file,
-        lineNumber: Number.isFinite(lineNumber) ? lineNumber : undefined,
         componentName: row.component,
         bucket: row.bucket,
         source: 'name',
@@ -341,6 +346,7 @@ export function resolveInspectTarget(
     }
   }
 
+  const codeInfo = getElementCodeInfo(element);
   const pathFile = normalizeAuditPath(codeInfo?.relativePath ?? codeInfo?.absolutePath);
   const nearest = resolveNearestAuditFile(element, rows, edges, options);
   if (nearest) {
