@@ -1,0 +1,34 @@
+src/react/ColocationPanelHeader.tsx
+  s_9ca89db16ec5f4::t_504f7fa24ff565 266-267
+src/react/InspectBadge.tsx
+  s_9ca89db16ec5f4::t_74a3827b0c37da 43-44,48-52,54,56-64
+package.json
+  s_9ca89db16ec5f4::t_609404b06799cf 3
+test/pickInspectRow.test.ts
+  s_9ca89db16ec5f4::t_776c474c97b7f3 50-58
+CHANGELOG.md
+  s_9ca89db16ec5f4::t_770540e4f0622b 10-16
+src/react/resolveInspect.ts
+  s_9ca89db16ec5f4::t_2ebb8639c7981c 300-308
+  s_9ca89db16ec5f4::t_5986f55cf69b7b 170-180,199-201
+src/react/ColocationDevTools.tsx
+  s_9ca89db16ec5f4::t_54ad4caa57ca73 302,307-308,317,321
+  s_9ca89db16ec5f4::t_4624749aa10eee 438,459
+  s_9ca89db16ec5f4::t_d9bd6d79213013 167-169
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "5270b8d1be00115005fb4455c593be4802978c6f",
+  "prompts": {},
+  "sessions": {
+    "s_9ca89db16ec5f4": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4710b1e1-2d01-4074-903e-65025b709bb6",
+        "model": "composer-2.5"
+      },
+      "human_author": "Nathan Wang <nathan123wang@gmail.com>"
+    }
+  }
+}
