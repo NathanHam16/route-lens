@@ -1,0 +1,20 @@
+README.md
+  s_fc40294cb10ac8::t_a9d83cdb090d40 16-17,22-173
+  s_fc40294cb10ac8::t_769d545efd820b 174
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "6be148bb500ebaf475f3d20b5781373c42ac67c0",
+  "prompts": {},
+  "sessions": {
+    "s_fc40294cb10ac8": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4a70eb77-7e86-4e87-b843-c75e7dbf6ddd",
+        "model": "composer-2.5"
+      },
+      "human_author": "Nathan Wang <nathan123wang@gmail.com>"
+    }
+  }
+}
