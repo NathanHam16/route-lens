@@ -111,6 +111,41 @@ export function importSubtree(root: string, importsOf: Map<string, Set<string>>)
   return result;
 }
 
+/** Like `importSubtree`, but only up to `maxDepth` import hops from `root` (0 = root only). */
+export function importSubtreeWithinDepth(
+  root: string,
+  importsOf: Map<string, Set<string>>,
+  maxDepth: number,
+): Set<string> {
+  const result = new Set<string>([root]);
+  if (maxDepth <= 0) return result;
+
+  let frontier = [root];
+  for (let depth = 0; depth < maxDepth; depth++) {
+    const next: string[] = [];
+    for (const current of frontier) {
+      for (const child of importsOf.get(current) ?? []) {
+        if (!result.has(child)) {
+          result.add(child);
+          next.push(child);
+        }
+      }
+    }
+    frontier = next;
+  }
+
+  return result;
+}
+
+/** Scope for focus isolation: direct imports by default, optional full transitive closure. */
+export function focusImportScope(
+  root: string,
+  importsOf: Map<string, Set<string>>,
+  transitive: boolean,
+): Set<string> {
+  return transitive ? importSubtree(root, importsOf) : importSubtreeWithinDepth(root, importsOf, 1);
+}
+
 function bucketRank(bucket: AuditRow['bucket']): number {
   switch (bucket) {
     case 'cross-route':

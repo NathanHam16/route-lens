@@ -11,6 +11,8 @@ export type PanelSettings = {
   smellsOnly: boolean;
   sortSmellsFirst: boolean;
   hideShared: boolean;
+  /** When focused: follow imports transitively (off = direct imports only). */
+  focusTransitive: boolean;
 };
 
 export const DEFAULT_PANEL_SETTINGS: PanelSettings = {
@@ -24,6 +26,7 @@ export const DEFAULT_PANEL_SETTINGS: PanelSettings = {
   smellsOnly: false,
   sortSmellsFirst: false,
   hideShared: true,
+  focusTransitive: false,
 };
 
 export type SettingsPreset = 'default' | 'audit' | 'navigate' | 'debug';
@@ -35,6 +38,7 @@ const PRESET_SETTINGS: Record<SettingsPreset, Partial<PanelSettings>> = {
     smellsOnly: true,
     sortSmellsFirst: true,
     hideShared: true,
+    focusTransitive: true,
     showImportCount: false,
     showImporterCount: false,
     showLineCount: false,
@@ -50,6 +54,7 @@ const PRESET_SETTINGS: Record<SettingsPreset, Partial<PanelSettings>> = {
     smellsOnly: false,
     sortSmellsFirst: false,
     hideShared: true,
+    focusTransitive: false,
     showLineCount: false,
     showSmellNotes: false,
     showNoDomTag: false,
@@ -65,6 +70,7 @@ const PRESET_SETTINGS: Record<SettingsPreset, Partial<PanelSettings>> = {
     smellsOnly: false,
     sortSmellsFirst: false,
     hideShared: false,
+    focusTransitive: true,
   },
 };
 

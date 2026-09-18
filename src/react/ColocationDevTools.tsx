@@ -20,7 +20,7 @@ import {
   buildImportIndex,
   graphChildren,
   graphParents,
-  importSubtree,
+  focusImportScope,
   pickGraphNeighbor,
 } from '../core/importGraph.js';
 import { buildGraphDepthIndex } from '../core/auditMetrics.js';
@@ -156,8 +156,8 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
 
   const focusFiles = useMemo(() => {
     if (!focusFile) return null;
-    return importSubtree(focusFile, importsOf);
-  }, [focusFile, importsOf]);
+    return focusImportScope(focusFile, importsOf, settings.focusTransitive);
+  }, [focusFile, importsOf, settings.focusTransitive]);
 
   const displayRows = useMemo(() => {
     if (!focusFiles) return rows;
@@ -238,10 +238,17 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
   }, [handleSelectFile, importedBy, navFile, parentStep]);
 
   const goDown = useCallback(() => {
-    if (!navFile) return;
+    if (!navFile || !focusFile) return;
     const step = pickGraphNeighbor(graphChildren(navFile, importsOf), childStep);
-    if (step.file) handleSelectFile(step.file, false);
-  }, [childStep, handleSelectFile, importsOf, navFile]);
+    if (!step.file) return;
+    if (
+      !settings.focusTransitive &&
+      !focusImportScope(focusFile, importsOf, false).has(step.file)
+    ) {
+      return;
+    }
+    handleSelectFile(step.file, false);
+  }, [childStep, focusFile, handleSelectFile, importsOf, navFile, settings.focusTransitive]);
 
   const cycleParent = useCallback(
     (delta: -1 | 1) => {
@@ -301,6 +308,7 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
 
       const target = resolveInspectTarget(element, inspectRows, data?.routeRoot, edges, {
         focusFile,
+        focusTransitive: settings.focusTransitive,
         mountedFiles,
       });
 
@@ -318,7 +326,7 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
 
       if (target.file) setSelectedFile(target.file);
     },
-    [data?.routeRoot, edges, focusFile, inspectRows, mountedFiles],
+    [data?.routeRoot, edges, focusFile, inspectRows, mountedFiles, settings.focusTransitive],
   );
 
   useEffect(() => {
@@ -437,6 +445,7 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
       event.stopPropagation();
       const target = resolveInspectTarget(element, inspectRows, data?.routeRoot, edges, {
         focusFile,
+        focusTransitive: settings.focusTransitive,
         mountedFiles,
       });
       if (target.file) {
@@ -458,6 +467,7 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
     inspectMode,
     inspectRows,
     mountedFiles,
+    settings.focusTransitive,
     updateHoverFromElement,
   ]);
 
@@ -488,6 +498,8 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
       entryFile={data?.entry}
       counts={counts}
       countsAreDownstream={Boolean(focusFile)}
+      focusTransitive={settings.focusTransitive}
+      onFocusTransitiveChange={(value) => updateSettings({ focusTransitive: value })}
       fontPx={fontPx}
       pageMatchCount={pageMatchCount}
       pageMatchViaShell={pageMatchViaShell}

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.5] - 2026-09-18
+
+### Changed
+
+- **Focus defaults to direct imports only** — isolating `PaperStackedCards` no longer pulls in transitive chains (e.g. rubric UI reached via `PromptRenderer` → question bank). Toggle **transitive** in the focus bar or settings to see the full downstream closure.
+
 ## [0.2.4] - 2026-09-18
 
 ### Fixed

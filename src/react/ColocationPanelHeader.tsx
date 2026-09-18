@@ -93,6 +93,8 @@ export type ColocationPanelHeaderProps = {
   entryFile?: string;
   counts: { ok: number; cross: number; audit: number };
   countsAreDownstream: boolean;
+  focusTransitive: boolean;
+  onFocusTransitiveChange: (value: boolean) => void;
   pageMatchCount?: number | null;
   pageMatchViaShell?: boolean;
   fontPx: number;
@@ -118,6 +120,8 @@ export function ColocationPanelHeader({
   focusRootBucket,
   counts,
   countsAreDownstream,
+  focusTransitive,
+  onFocusTransitiveChange,
   pageMatchCount,
   pageMatchViaShell,
   fontPx,
@@ -264,10 +268,25 @@ export function ColocationPanelHeader({
           </div>
 
           <div className="flex items-center justify-between gap-2 text-[10px] text-zinc-500">
-            <span>{matchLabel || 'tree + inspect scoped to this file’s imports'}</span>
-            <span className="shrink-0 tabular-nums">
-              ↑↓ go · ←→ imports · ⇧←→ parents
+            <span className="min-w-0 truncate">
+              {matchLabel ||
+                (focusTransitive
+                  ? 'tree + inspect · all downstream imports'
+                  : 'tree + inspect · direct imports only')}
             </span>
+            <button
+              type="button"
+              onClick={() => onFocusTransitiveChange(!focusTransitive)}
+              aria-pressed={focusTransitive}
+              title="Direct imports only vs full transitive downstream"
+              className={`shrink-0 rounded px-1 py-0.5 tabular-nums ${
+                focusTransitive
+                  ? 'bg-orange-950/60 text-orange-200 ring-1 ring-orange-500/40'
+                  : 'bg-zinc-900/80 text-zinc-400 ring-1 ring-white/10 hover:text-zinc-200'
+              }`}
+            >
+              {focusTransitive ? 'transitive' : 'direct'}
+            </button>
           </div>
         </div>
       ) : ready ? (
@@ -279,7 +298,11 @@ export function ColocationPanelHeader({
       {ready ? (
         <div className="flex items-center justify-between gap-2 px-1.5 py-0.5 tabular-nums">
           <span className="text-zinc-500">
-            {countsAreDownstream ? 'smells · downstream' : 'smells · this page'}
+            {countsAreDownstream
+              ? focusTransitive
+                ? 'smells · transitive'
+                : 'smells · direct'
+              : 'smells · this page'}
           </span>
           <span className="flex shrink-0 items-center gap-x-2 text-[10px]">
             <span className="text-green-400" title="Green — colocated or product">

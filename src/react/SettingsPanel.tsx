@@ -149,7 +149,11 @@ export function SettingsPanel({
             <div className="space-y-0.5">
               <p className="text-[10px] uppercase tracking-wide text-zinc-600">filter</p>
               {filterLocked ? (
-                <p className="py-0.5 text-[10px] text-zinc-600">focus shows full downstream tree</p>
+                <SettingToggle
+                  checked={settings.focusTransitive}
+                  label="transitive downstream"
+                  onChange={(value) => onChange({ focusTransitive: value })}
+                />
               ) : null}
               <SettingToggle
                 checked={settings.smellsOnly}

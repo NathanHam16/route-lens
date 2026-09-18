@@ -15,7 +15,7 @@ import { classify } from '../core/classify.js';
 import {
   buildImportIndex,
   disambiguateComponentRow,
-  importSubtree,
+  focusImportScope,
   type ImportEdge,
 } from '../core/importGraph.js';
 
@@ -37,6 +37,8 @@ const SKIP_FIBER_NAMES = new Set([
 export type ResolveInspectOptions = {
   /** When set, prefer this file or its downstream imports over deeper leaf components. */
   focusFile?: string;
+  /** When focused: include the full transitive import closure (default: direct imports only). */
+  focusTransitive?: boolean;
   /** Files with a live DOM mount on the page — used to break name ties. */
   mountedFiles?: Set<string>;
 };
@@ -172,10 +174,11 @@ export function isInFocusSubtree(
   file: string,
   focusFile: string | undefined,
   importsOf: Map<string, Set<string>>,
+  focusTransitive = false,
 ): boolean {
   if (!focusFile) return true;
   if (file === focusFile) return true;
-  return importSubtree(focusFile, importsOf).has(file);
+  return focusImportScope(focusFile, importsOf, focusTransitive).has(file);
 }
 
 /** Pick the audit row that best matches user intent for inspect / click-to-focus. */
@@ -191,10 +194,10 @@ export function pickInspectRow(
     const exact = chainRows.find((row) => row.file === focusFile);
     if (exact) return exact;
 
-    const downstream = importSubtree(focusFile, importsOf);
+    const scope = focusImportScope(focusFile, importsOf, options?.focusTransitive ?? false);
     for (let i = chainRows.length - 1; i >= 0; i--) {
       const row = chainRows[i]!;
-      if (downstream.has(row.file)) return row;
+      if (scope.has(row.file)) return row;
     }
 
     // Focus is on — do not fall back to unrelated page components (e.g. sidebar rubric).
