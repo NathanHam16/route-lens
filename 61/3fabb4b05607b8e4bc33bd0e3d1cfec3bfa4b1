@@ -1,0 +1,136 @@
+src/react/index.tsx
+  s_9ca89db16ec5f4::t_e661d24ca733b0 3-4
+CHANGELOG.md
+  s_9ca89db16ec5f4::t_5dc42070b588ec 32-38
+  s_9ca89db16ec5f4::t_236bb5e850f645 29-31
+  s_846c28aaeb1e6c::t_62f307c8ee7dfa 10-28
+src/react/panelPrefs.ts
+  s_9ca89db16ec5f4::t_5df591bf6a9186 4
+examples/colocation-demo/package.json
+  s_846c28aaeb1e6c::t_e1b27c4a257dc5 14
+  s_846c28aaeb1e6c::t_365a2ea77ca8ea 1-13,15-32
+test/auditEntry.test.ts
+  s_846c28aaeb1e6c::t_5520d7d30b8a04 1-42
+src/core/config.ts
+  s_846c28aaeb1e6c::t_5898bd698a1548 10
+  s_846c28aaeb1e6c::t_5af05e5aab1681 47-49
+src/react/ColocationDevTools.tsx
+  s_846c28aaeb1e6c::t_0f63d1f0be6c99 301,376,386,388,424-430
+  s_846c28aaeb1e6c::t_04be350a8f0345 299-300
+  s_846c28aaeb1e6c::t_eb056f9a370b24 302
+  s_846c28aaeb1e6c::t_11d12b02e9fa32 377-379,383-385
+  s_846c28aaeb1e6c::t_0fbc3b5fec07a4 387
+  s_846c28aaeb1e6c::t_305417847cdda6 284,289,316,380-382,433-436,448-457,499-500
+package.json
+  s_9ca89db16ec5f4::t_e814984ddd5759 46-48,50-51
+  s_9ca89db16ec5f4::t_43bee5dc80d3ec 37
+  s_9ca89db16ec5f4::t_488acf9c7bfc78 74
+  s_846c28aaeb1e6c::t_2790374ae15e94 3
+  s_9ca89db16ec5f4::t_b5705a46e3c41b 81
+src/react/DraggablePanel.tsx
+  s_9ca89db16ec5f4::t_2751a41f4ec113 175
+src/core/audit.ts
+  s_846c28aaeb1e6c::t_edc2c2a8615d3e 23-34,37-42,44-46,48,50-53,55-59,61,63,65
+src/react/FileTreePanel.tsx
+  s_9ca89db16ec5f4::t_5958b1e38adf9a 39-43
+  s_9ca89db16ec5f4::t_cf1979c86d37bc 387
+  s_846c28aaeb1e6c::t_112b0a9965c069 96,98
+tsup.config.ts
+  s_9ca89db16ec5f4::t_91544c2654fe19 3-15,27
+src/react/styles.css
+  s_9ca89db16ec5f4::t_4aeb062315a8fd 1-12
+src/next/routeHandler.ts
+  s_846c28aaeb1e6c::t_f95f35b5c76713 76-77
+scripts/verify-pack.mjs
+  s_9ca89db16ec5f4::t_50a7c1ffbe60dc 67-72
+examples/colocation-demo/.gitignore
+  s_846c28aaeb1e6c::t_08fcb31b171685 1-41
+examples/colocation-demo/eslint.config.mjs
+  s_846c28aaeb1e6c::t_958ef81bc5a503 1-25
+examples/colocation-demo/postcss.config.mjs
+  s_846c28aaeb1e6c::t_c9f25738c35037 1-5
+examples/colocation-demo/public/file.svg
+  s_846c28aaeb1e6c::t_6acb2aa9b2a643 1
+examples/colocation-demo/public/globe.svg
+  s_846c28aaeb1e6c::t_d0240a52c9e066 1
+examples/colocation-demo/public/next.svg
+  s_846c28aaeb1e6c::t_851d73341814ab 1
+examples/colocation-demo/public/vercel.svg
+  s_846c28aaeb1e6c::t_c3ce23508cadf7 1
+examples/colocation-demo/public/window.svg
+  s_846c28aaeb1e6c::t_930ad7a3ecfebb 1
+examples/colocation-demo/src/app/globals.css
+  s_846c28aaeb1e6c::t_d32d1f8b0e66ae 1-26
+examples/colocation-demo/tsconfig.json
+  s_846c28aaeb1e6c::t_61674f8f4592a3 1-27
+README.md
+  s_846c28aaeb1e6c::t_1d8eb5762f5220 72-122
+examples/README.md
+  s_846c28aaeb1e6c::t_8e73d62b448ab0 7-9
+examples/colocation-demo/README-colocation-devtools.md
+  s_846c28aaeb1e6c::t_122d7b8e2adb42 1-113
+examples/colocation-demo/README.md
+  s_846c28aaeb1e6c::t_2dc80f35f21884 1-31
+examples/colocation-demo/next.config.ts
+  s_846c28aaeb1e6c::t_621e8a2d46e8de 1-9
+examples/colocation-demo/package-lock.json
+  s_846c28aaeb1e6c::t_c6c03619ee0589 1-6345
+examples/colocation-demo/scripts/capture-screenshots.mjs
+  s_846c28aaeb1e6c::t_33306c62e2c299 1-107
+examples/colocation-demo/src/app/api/dev/route-lens/route.ts
+  s_846c28aaeb1e6c::t_0aea8a7bc10e59 1-5
+examples/colocation-demo/src/app/blog/page.tsx
+  s_846c28aaeb1e6c::t_8c7fcc405ddd2b 1-27
+examples/colocation-demo/src/app/layout.tsx
+  s_846c28aaeb1e6c::t_accadcef7d7aee 1-35
+examples/colocation-demo/src/app/page.tsx
+  s_846c28aaeb1e6c::t_0fad2b084e1002 1-24
+examples/colocation-demo/src/app/providers.tsx
+  s_846c28aaeb1e6c::t_8170ff87eb1e14 1-13
+examples/colocation-demo/src/app/shop/_components/ShopCard.tsx
+  s_846c28aaeb1e6c::t_a4a781837bed35 1-13
+examples/colocation-demo/src/app/shop/page.tsx
+  s_846c28aaeb1e6c::t_0b16bf74ae9ad8 1-21
+examples/colocation-demo/src/components/orphan/OrphanWidget.tsx
+  s_846c28aaeb1e6c::t_efaa07effa07a6 1-10
+examples/colocation-demo/src/components/shared/SharedBadge.tsx
+  s_846c28aaeb1e6c::t_a76cf7b5382edd 1-7
+package-lock.json
+  s_846c28aaeb1e6c::t_49d539cf37169a 3,9,18,25,1593-1914,2272-2534,2536-2539,2541,2547-2551,2553-2564,2566,2571-2581,2583-2586,2588,2595-2598,2600-2603,2612-2614,4196-4205,4288-4548,4844-4853,4945-4951,5826-5832
+src/core/importGraph.ts
+  s_846c28aaeb1e6c::t_788543e01b671e 137,139,148,152-157
+src/react/ColocationPanelHeader.tsx
+  s_846c28aaeb1e6c::t_66e2ce729d98fc 3-4,109-110,134-135,168-182,274-275,281-286,288-289,291-292
+src/react/SettingsPanel.tsx
+  s_846c28aaeb1e6c::t_cab14be30d3411 179
+src/react/resolveInspect.ts
+  s_846c28aaeb1e6c::t_272c256662d97f 15-20,37-43,116,120,128,133,139-140,144-145,147,150-151,157-164,167-208,216,225,230,268,272,274-283,297-306,318-319
+test/importGraph.test.ts
+  s_846c28aaeb1e6c::t_7ec75469d71cae 121-128
+test/pickInspectRow.test.ts
+  s_846c28aaeb1e6c::t_3d2b99b1ac7811 1-56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "613fabb4b05607b8e4bc33bd0e3d1cfec3bfa4b1",
+  "prompts": {},
+  "sessions": {
+    "s_846c28aaeb1e6c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "9f3dbfea-f6ed-442e-ad0a-551a56bb190c",
+        "model": "composer-2.5"
+      },
+      "human_author": "Nathan Wang <nathan123wang@gmail.com>"
+    },
+    "s_9ca89db16ec5f4": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4710b1e1-2d01-4074-903e-65025b709bb6",
+        "model": "composer-2.5"
+      },
+      "human_author": "Nathan Wang <nathan123wang@gmail.com>"
+    }
+  }
+}
