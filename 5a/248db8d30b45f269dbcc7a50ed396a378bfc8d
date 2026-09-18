@@ -1,0 +1,29 @@
+package.json
+  s_9ca89db16ec5f4::t_69f192f562f575 3
+CHANGELOG.md
+  s_9ca89db16ec5f4::t_f76b738852a7c6 10-16
+src/react/ColocationDevTools.tsx
+  s_9ca89db16ec5f4::t_fcfc400333918c 100-101,301,304-306,317,399-405,424,434-438,447
+src/react/ColocationPanelHeader.tsx
+  s_9ca89db16ec5f4::t_f45b22536a54f0 153-157,161-162,166,170-171,275,278-279,285-290,293,296,302,311-313
+src/react/SettingsPanel.tsx
+  s_9ca89db16ec5f4::t_adf148654a39ec 152-162
+src/react/resolveInspect.ts
+  s_9ca89db16ec5f4::t_68c427f214c8b8 44-45,48-54,160,296,349
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "5a248db8d30b45f269dbcc7a50ed396a378bfc8d",
+  "prompts": {},
+  "sessions": {
+    "s_9ca89db16ec5f4": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4710b1e1-2d01-4074-903e-65025b709bb6",
+        "model": "composer-2.5"
+      },
+      "human_author": "Nathan Wang <nathan123wang@gmail.com>"
+    }
+  }
+}
