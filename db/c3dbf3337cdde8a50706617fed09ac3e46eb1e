@@ -1,0 +1,29 @@
+examples/colocation-demo/package.json
+  s_fc40294cb10ac8::t_bb4a9693bd4cb0 14
+docs/AGENT-INSTALL.md
+  s_fc40294cb10ac8::t_fdeaf34f916e16 1-29
+examples/colocation-demo/README.md
+  s_fc40294cb10ac8::t_49dcfee5bf4a5b 1,4,7,11-12,14,16
+CHANGELOG.md
+  s_fc40294cb10ac8::t_c21ab8a858bfcf 69-75
+examples/README.md
+  s_fc40294cb10ac8::t_6cb545b08aae8a 3-8,10
+README.md
+  s_fc40294cb10ac8::t_6f3e51a7124dd3 3,5-9,11,19,21,23,26,29,31-33,37,40-54,57,59,61,63,65-67,69-73,75,80-81,84,86,88,90,92,94,96-98,100,102,104-107,109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "dbc3dbf3337cdde8a50706617fed09ac3e46eb1e",
+  "prompts": {},
+  "sessions": {
+    "s_fc40294cb10ac8": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4a70eb77-7e86-4e87-b843-c75e7dbf6ddd",
+        "model": "composer-2.5"
+      },
+      "human_author": "Nathan Wang <nathan123wang@gmail.com>"
+    }
+  }
+}
