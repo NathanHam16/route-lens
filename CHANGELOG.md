@@ -66,5 +66,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **CLI** (`route-lens` / `npx @nathanham16/route-lens`): audit a route or page from the terminal with `--json` and `--suspects-only` flags.
 - **Core audit API** (`@nathanham16/route-lens`): `auditPage`, import graph utilities, and colocation classification for Next.js App Router layouts.
 
-[Unreleased]: https://github.com/NathanHam16/route-lens/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/NathanHam16/route-lens/compare/v0.2.6...HEAD
+[0.2.6]: https://github.com/NathanHam16/route-lens/releases/tag/v0.2.6
+[0.2.5]: https://github.com/NathanHam16/route-lens/compare/v0.2.4...v0.2.5
+[0.2.4]: https://github.com/NathanHam16/route-lens/compare/v0.2.3...v0.2.4
+[0.2.3]: https://github.com/NathanHam16/route-lens/compare/v0.2.2...v0.2.3
+[0.2.2]: https://github.com/NathanHam16/route-lens/compare/v0.2.1...v0.2.2
+[0.2.1]: https://github.com/NathanHam16/route-lens/compare/v0.1.0...v0.2.1
 [0.1.0]: https://github.com/NathanHam16/route-lens/releases/tag/v0.1.0

@@ -11,7 +11,7 @@
     "screenshots": "node scripts/capture-screenshots.mjs"
   },
   "dependencies": {
-    "@nathanham16/route-lens": "file:../../nathanham16-route-lens-0.2.6.tgz",
+    "@nathanham16/route-lens": "file:../..",
     "lucide-react": "^0.544.0",
     "next": "15.5.25",
     "react": "19.1.0",

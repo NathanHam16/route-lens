@@ -1,12 +1,10 @@
 # Examples
 
-Copy-paste snippets for wiring **route-lens** into a Next.js App Router project.
+| Path | What |
+|------|------|
+| [`colocation-demo/`](./colocation-demo/) | Runnable app — `/blog` with intentional smells |
+| [`basic-setup.ts`](./basic-setup.ts) | API route + providers snippet |
+| [`custom-classifier.ts`](./custom-classifier.ts) | `okPrefixes` + `productSibling` |
+| [`cli-usage.sh`](./cli-usage.sh) | CLI examples |
 
-These files are **repo-only documentation** — they are not published to npm. For install steps, CLI usage, and bucket semantics, see the [main README](../README.md).
-
-| File / folder | What it shows |
-|---------------|----------------|
-| [`colocation-demo/`](./colocation-demo/) | **Runnable Next.js app** — `/blog` with cross-route + shared-feature smells; screenshot source for README |
-| [`basic-setup.ts`](./basic-setup.ts) | API route + root providers |
-| [`custom-classifier.ts`](./custom-classifier.ts) | Custom `okPrefixes` and `productSibling` |
-| [`cli-usage.sh`](./cli-usage.sh) | `route-lens` CLI invocations |
+Install and setup: [main README](../README.md).
