@@ -43,7 +43,13 @@ Header counts: **green** ok · **red** cross-route · **orange** audit smells.
 
 ## Screenshots
 
-### 1. Widget + file tree
+### 1. Widget on the page
+
+Bottom-left folder-tree button on `/blog`. Press `Alt+Shift+C` to toggle.
+
+![Widget on /blog](./docs/screenshots/01-page-with-widget.png)
+
+### 2. File tree
 
 Open the panel on `/blog`. Tree is color-coded; suspects stand out immediately.
 

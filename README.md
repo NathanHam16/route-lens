@@ -85,6 +85,12 @@ If your API route is not at the default path, pass `apiPath`:
 
 Screenshots from the [colocation demo app](https://github.com/NathanHam16/route-lens/tree/main/examples/colocation-demo) running on `/blog` — a page that imports `ShopCard` from another route (red) and `OrphanWidget` from `components/orphan/` (orange).
 
+### Widget on the page
+
+Bottom-left folder-tree button opens the panel. Press `Alt+Shift+C` from anywhere.
+
+![Route Lens widget on /blog](./docs/screenshots/01-page-with-widget.png)
+
 ### File tree
 
 Color-coded import tree: green = colocated, red = cross-route, orange = shared-feature smell.
