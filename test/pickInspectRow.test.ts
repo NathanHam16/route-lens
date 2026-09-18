@@ -47,6 +47,15 @@ describe('pickInspectRow', () => {
     );
   });
 
+  it('returns null when focus is set but the hover chain is outside the subtree', () => {
+    const { importsOf } = buildImportIndex([]);
+    const chainRows = [rows[1]!];
+    const picked = pickInspectRow(chainRows, importsOf, {
+      focusFile: 'app/submissions/_product/viewer/paper/sheet/PaperStackedCards.tsx',
+    });
+    expect(picked).toBeNull();
+  });
+
   it('defaults to innermost tsx row when no focus is set', () => {
     const { importsOf } = buildImportIndex([]);
     const chainRows = [rows[1]!, rows[0]!];

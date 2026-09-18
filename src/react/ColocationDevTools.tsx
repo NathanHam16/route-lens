@@ -164,6 +164,9 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
     return rows.filter((row) => focusFiles.has(row.file));
   }, [focusFiles, rows]);
 
+  /** When focused, inspect/name resolution only considers the isolated subtree. */
+  const inspectRows = focusFile ? displayRows : rows;
+
   const graphDepths = useMemo(
     () => buildGraphDepthIndex(data?.entry, edges),
     [data?.entry, edges],
@@ -296,10 +299,12 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
         return;
       }
 
-      const target = resolveInspectTarget(element, rows, data?.routeRoot, edges, {
+      const target = resolveInspectTarget(element, inspectRows, data?.routeRoot, edges, {
         focusFile,
         mountedFiles,
       });
+
+      const outsideFocus = Boolean(focusFile && !target.file);
 
       setHover({
         visible: true,
@@ -309,11 +314,11 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
         componentName: target.componentName,
         bucket: target.bucket,
       });
-      setHighlightedEl(element);
+      setHighlightedEl(outsideFocus ? null : element);
 
       if (target.file) setSelectedFile(target.file);
     },
-    [data?.routeRoot, edges, focusFile, mountedFiles, rows],
+    [data?.routeRoot, edges, focusFile, inspectRows, mountedFiles],
   );
 
   useEffect(() => {
@@ -430,7 +435,7 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
       }
       event.preventDefault();
       event.stopPropagation();
-      const target = resolveInspectTarget(element, rows, data?.routeRoot, edges, {
+      const target = resolveInspectTarget(element, inspectRows, data?.routeRoot, edges, {
         focusFile,
         mountedFiles,
       });
@@ -451,8 +456,8 @@ function ColocationDevToolsPanel({ apiPath }: RouteLensProps) {
     focusFile,
     handleSelectFile,
     inspectMode,
+    inspectRows,
     mountedFiles,
-    rows,
     updateHoverFromElement,
   ]);
 

@@ -263,8 +263,8 @@ export function ColocationPanelHeader({
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-2 text-[10px] text-zinc-600">
-            <span>{matchLabel || 'tree = downstream imports'}</span>
+          <div className="flex items-center justify-between gap-2 text-[10px] text-zinc-500">
+            <span>{matchLabel || 'tree + inspect scoped to this file’s imports'}</span>
             <span className="shrink-0 tabular-nums">
               ↑↓ go · ←→ imports · ⇧←→ parents
             </span>

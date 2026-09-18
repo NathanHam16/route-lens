@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.4] - 2026-09-18
+
+### Fixed
+
+- **Focus isolation is strict:** with a file focused, inspect hover/click only resolves components in that file’s import subtree. Hovering elsewhere shows an amber **outside focus** badge instead of unrelated files like sidebar `RubricProse`.
+- Inspect name resolution uses the filtered tree rows while focused.
+
 ## [0.2.3] - 2026-09-18
 
 ### Changed

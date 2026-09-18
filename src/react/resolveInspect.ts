@@ -167,6 +167,17 @@ export function auditRowsFromFiberChain(
   return chainRows;
 }
 
+/** True when `file` is the focus root or a static import descendant of it. */
+export function isInFocusSubtree(
+  file: string,
+  focusFile: string | undefined,
+  importsOf: Map<string, Set<string>>,
+): boolean {
+  if (!focusFile) return true;
+  if (file === focusFile) return true;
+  return importSubtree(focusFile, importsOf).has(file);
+}
+
 /** Pick the audit row that best matches user intent for inspect / click-to-focus. */
 export function pickInspectRow(
   chainRows: AuditRow[],
@@ -185,6 +196,9 @@ export function pickInspectRow(
       const row = chainRows[i]!;
       if (downstream.has(row.file)) return row;
     }
+
+    // Focus is on — do not fall back to unrelated page components (e.g. sidebar rubric).
+    return null;
   }
 
   const tsxRows = chainRows.filter((row) => row.file.endsWith('.tsx'));
@@ -280,6 +294,15 @@ export function resolveInspectTarget(
       componentName: picked.component,
       bucket: picked.bucket,
       source: 'chain',
+    };
+  }
+
+  if (options?.focusFile) {
+    return {
+      file: null,
+      componentName: 'outside focus',
+      bucket: null,
+      source: 'none',
     };
   }
 
